@@ -4,8 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>CampusRent — Tenant</title>
-
-<!-- favicon & logo -->
 <link rel="icon" href="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" type="image/png">
 <meta name="theme-color" content="#92adcc">
 
@@ -19,37 +17,55 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <style>
-:root{--brand:#92adcc;--white:#fff;--muted:#A9A9A9;--card-shadow:0 8px 20px rgba(20,20,20,0.06)}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,system-ui;background:#f5f5f5;color:#222;-webkit-font-smoothing:antialiased}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-bottom:1px solid #e6e6e6;gap:12px}
-.brand{display:flex;align-items:center;gap:12px}
-.hamburger{font-size:20px;padding:8px;border-radius:8px;border:1px solid #e6e6e6;background:transparent;cursor:pointer}
-.search-area{display:flex;gap:8px;align-items:center;flex:1;justify-content:flex-end}
-.search-area input{padding:10px;border-radius:10px;border:1px solid #e6e6e6;min-width:220px}
-.btn{background:var(--brand);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-.small-btn{background:transparent;border:1px solid #e6e6e6;padding:8px 10px;border-radius:8px;cursor:pointer}
-.sidebar{position:fixed;left:-320px;top:0;bottom:0;width:300px;background:var(--brand);padding:16px;transition:left .22s;z-index:60;color:#fff}
-.sidebar.open{left:0}
-.side-link{display:block;background:transparent;border:none;padding:8px 10px;margin:6px 0;border-radius:8px;color:#fff;text-align:left;cursor:pointer}
-.side-link:hover{background:rgba(255,255,255,0.07)}
-.main{display:flex;gap:12px;padding:16px}
-.left-col{flex:1}
-.map-col{width:420px;max-width:45%;min-width:300px}
-.s-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-.card{background:#fff;padding:12px;border-radius:12px;border:1px solid #eee;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:8px}
-.card img{width:100%;height:140px;object-fit:cover;border-radius:8px}
-.small{font-size:13px;color:#777}
-.vacant-pill{background:#e6f7ff;color:var(--brand);padding:6px 8px;border-radius:999px;font-size:13px}
-.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;padding:14px;border-radius:10px;z-index:80;min-width:320px;border:1px solid #eee;box-shadow:0 12px 40px rgba(0,0,0,0.12);display:none}
-.modal.show{display:block}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:75;display:none}
-.overlay.show{display:block}
-#map{height:520px;border-radius:8px;background:#e9eef6}
-.form-row{display:flex;gap:8px;flex-wrap:wrap}
-.form-row input, .form-row select{padding:8px;border-radius:8px;border:1px solid #eee;flex:1}
-.logo-sm{width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff;padding:6px}
-.login-btn{background:#fff;color:var(--brand);padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
-@media (max-width:920px){ .map-col{display:none} .main{flex-direction:column} .search-area input{min-width:120px} .sidebar{width:100%;left:-100%} .sidebar.open{left:0} }
+  :root{
+    --brand:#92adcc; --white:#fff; --muted:#A9A9A9; --card-shadow:0 8px 20px rgba(20,20,20,0.06);
+    --text:#222;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:Inter,Arial,system-ui;background:#f5f5f5;color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.28}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--white);border-bottom:1px solid #e6e6e6;gap:12px;position:sticky;top:0;z-index:40}
+  .brand{display:flex;align-items:center;gap:12px}
+  .hamburger{font-size:20px;padding:8px;border-radius:8px;border:1px solid #e6e6e6;background:transparent;cursor:pointer}
+  .search-area{display:flex;gap:8px;align-items:center;flex:1;justify-content:flex-end}
+  .search-area input{padding:10px;border-radius:10px;border:1px solid #e6e6e6;min-width:180px}
+  .btn{background:var(--brand);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .small-btn{background:transparent;border:1px solid #e6e6e6;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .sidebar{position:fixed;left:-320px;top:0;bottom:0;width:320px;background:var(--brand);padding:16px;transition:left .22s;z-index:60;color:#fff;overflow:auto}
+  .sidebar.open{left:0}
+  .side-link{display:block;background:transparent;border:none;padding:10px 8px;margin:6px 0;border-radius:8px;color:#fff;text-align:left;cursor:pointer}
+  .side-link:hover{background:rgba(255,255,255,0.06)}
+  .main{display:flex;gap:12px;padding:16px;align-items:flex-start;min-height:calc(100vh - 72px)}
+  .left-col{flex:1}
+  .map-col{width:420px;max-width:45%;min-width:300px}
+  .s-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .card{background:#fff;padding:12px;border-radius:12px;border:1px solid #eee;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:8px}
+  .card img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+  h4{margin:0 0 4px 0}
+  .small{font-size:13px;color:#777}
+  .vacant-pill{background:#e6f7ff;color:var(--brand);padding:6px 8px;border-radius:999px;font-size:13px}
+  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;padding:14px;border-radius:10px;z-index:90;min-width:320px;border:1px solid #eee;box-shadow:0 12px 40px rgba(0,0,0,0.12);display:none;max-height:90vh;overflow:auto}
+  .modal.show{display:block}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:85;display:none}
+  .overlay.show{display:block}
+  #map{height:520px;border-radius:8px;background:#e9eef6}
+  .form-row{display:flex;gap:8px;flex-wrap:wrap}
+  .form-row input, .form-row select, .form-row textarea{padding:8px;border-radius:8px;border:1px solid #eee;flex:1}
+  .logo-sm{width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff;padding:6px}
+  .login-btn{background:#fff;color:var(--brand);padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+  .muted{color:var(--muted);font-size:13px}
+  .gallery img{width:100%;object-fit:cover;border-radius:6px}
+  .top-note{background:#fff;padding:10px;border-radius:10px;border:1px solid #eee;margin-bottom:12px}
+  /* responsive adjustments */
+  @media (max-width:920px){
+    .main{flex-direction:column;padding:12px}
+    .map-col{width:100%;max-width:100%;min-width:100%}
+    #map{height:320px}
+    .search-area input{min-width:120px}
+    .sidebar{width:100%;left:-100%}
+    .sidebar.open{left:0}
+    .card img{height:180px}
+  }
 </style>
 </head>
 <body>
@@ -61,32 +77,34 @@
       <img src="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" alt="logo" class="logo-sm">
       <div style="line-height:1">
         <div style="font-weight:700;color:var(--brand)">CampusRent</div>
-        <div class="small">Find rooms near your campus</div>
+        <div class="small">Tenant portal — find rooms near campus</div>
       </div>
     </div>
   </div>
 
   <div class="search-area">
-    <input id="mainSearch" placeholder="Enter university or campus and press Enter">
+    <input id="mainSearch" placeholder="Enter university or campus and press Enter" aria-label="Search">
     <button id="searchBtn" class="btn">Find</button>
-    <button id="toggleTiles" class="small-btn">Satellite</button>
+    <button id="toggleTiles" class="small-btn" title="Toggle map tiles">Satellite</button>
     <button id="loginBtn" class="login-btn">Login / Register</button>
   </div>
 </header>
 
+<!-- Sidebar -->
 <aside id="sidebar" class="sidebar" aria-hidden="true">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
     <img src="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" alt="logo" style="width:48px;height:48px;object-fit:contain;background:#fff;padding:6px;border-radius:8px">
     <div>
       <div style="font-weight:700">CampusRent</div>
-      <div style="font-size:13px;opacity:.9">Tenant portal</div>
+      <div style="font-size:13px;opacity:.95">Tenant portal</div>
     </div>
   </div>
 
   <button class="side-link" id="linkHome">Home</button>
   <button class="side-link" id="links">View Houses</button>
   <button class="side-link" id="linkBookings">My Bookings</button>
-  <button class="side-link" id="linkLandlord"><a href="  https://technologiesteam12-netizen.github.io/landlord-CampusReny/"> Landlord Portal →</a> </button>
+   <button class="side-link" id="linkLandlord"><a href="  https://technologiesteam12-netizen.github.io/landlord-CampusReny/"> Landlord Portal →</a> </button>
+
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:12px 0">
   <div style="font-size:13px;opacity:.95">Logged-in: <span id="who" style="font-weight:700">guest</span></div>
   <div style="margin-top:12px">
@@ -96,8 +114,8 @@
 
 <main class="main">
   <section class="left-col">
-    <div style="margin-bottom:12px">
-      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+    <div class="top-note">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
         <div>
           <label>Price max: <input id="priceMax" type="number" min="0" placeholder="e.g. 5000"></label>
           <label style="margin-left:8px">Type:
@@ -112,14 +130,24 @@
   </section>
 
   <aside class="map-col">
-    <div id="map" class=""></div>
-    <div style="margin-top:8px;font-size:13px;color:#666">Selected Campus: <strong id="selectedCampusLabel">None</strong></div>
+    <!-- MAP: initially hidden until search -->
+    <div id="mapContainer" style="display:none">
+      <div id="map"></div>
+      <div style="margin-top:8px;font-size:13px;color:#666">Selected Campus: <strong id="selectedCampusLabel">None</strong></div>
+    </div>
+
+    <div id="mapPlaceholder" style="border-radius:8px;padding:22px;background:#fff;border:1px solid #eee;display:flex;align-items:center;justify-content:center;min-height:220px">
+      <div style="text-align:center">
+        <div style="font-weight:700;color:var(--brand);margin-bottom:6px">Map is hidden</div>
+        <div class="muted">Search for a campus to show the map</div>
+      </div>
+    </div>
   </aside>
 </main>
 
-<div id="overlay" class="overlay"></div>
+<div id="overlay" class="overlay" aria-hidden="true"></div>
 
-<!-- DETAIL / BOOKING modal -->
+<!-- DETAIL modal -->
 <div id="detailModal" class="modal" role="dialog" aria-modal="true">
   <button id="closeDetail" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
   <div id="detailContent"></div>
@@ -151,23 +179,24 @@
 
 <!-- My bookings modal -->
 <div id="myBookingsModal" class="modal" style="min-width:420px">
-  <button class="closeModalSmall" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
+  <button id="closeMyBookings" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
   <h3>My Bookings</h3>
   <div id="mb_list" style="margin-top:10px"></div>
 </div>
 
+<!-- Firebase & App code -->
 <script>
-/* ---------- CONFIG: paste your firebase config below ---------- */
+/* ---------- FIREBASE CONFIG (your project) ---------- */
 const firebaseConfig = {
-  /* FIREBASE CONFIG HERE - replace with your project's settings */
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyBNI_Pb_54NMvte-m6oYnwlpTikaqmHxqQ",
+  authDomain: "campus-rent-7d1ef.firebaseapp.com",
+  projectId: "campus-rent-7d1ef",
+  storageBucket: "campus-rent-7d1ef.firebasestorage.app",
+  messagingSenderId: "849345981750",
+  appId: "1:849345981750:web:a787bab1e485aa631b5797",
+  measurementId: "G-889BD0W9PX"
 };
-/* -------------------------------------------------------------- */
+/* --------------------------------------------------- */
 
 let app, auth, db;
 function initFirebase(){
@@ -175,40 +204,47 @@ function initFirebase(){
     app = firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
     db = firebase.firestore();
-  }catch(e){ console.warn('firebase init failed', e); }
+    console.log('Firebase initialized');
+  }catch(e){
+    console.warn('Firebase init failed (check config)', e);
+  }
 }
 initFirebase();
 
-/* helpers */
+/* Helpers */
 const $ = id => document.getElementById(id);
 const genId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* Application state */
+/* App state */
 let map=null, osm=null, sat=null, markers={}, selectedCampusPoint=null, selectedMarker=null;
-let currentUser = null;
+let currentUser=null;
 
-/* Init UI and map */
+/* Map init - only when needed */
 function initMapIfNeeded(lat=-1.286389,lng=36.817223){
   if(map) return;
-  map = L.map('map',{center:[lat,lng],zoom:13});
-  osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
-  sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+  try{
+    map = L.map('map',{center:[lat,lng],zoom:13});
+    osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+    sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+    // improve mobile touch interactions
+    map.touchZoom.enable();
+    map.scrollWheelZoom.disable(); // avoid accidental scroll on mobile
+  }catch(e){ console.error('leaflet init', e); }
 }
 
-/* Houses collection helper */
+/* Load houses from Firestore (or empty array) */
 async function loadHouses(){
-  // If using Firestore, read houses collection; else use demo list
   try{
     if(db){
-      const snapshot = await db.collection('houses').get();
-      return snapshot.docs.map(d=>({id:d.id,...d.data()}));
+      const snap = await db.collection('houses').get();
+      return snap.docs.map(d=>({ id:d.id, ...d.data() }));
     }
-  }catch(e){ console.error('load houses',e); }
-  return []; // empty if none
+  }catch(e){ console.error('loadHouses', e); }
+  return [];
 }
 
-/* render houses */
+/* Render houses */
 async function renders(){
   const priceMax = Number($('priceMax').value) || Infinity;
   const typeFilter = $('typeFilter').value || 'ALL';
@@ -219,21 +255,23 @@ async function renders(){
     if(typeFilter!=='ALL' && h.type!==typeFilter) return false;
     const minRent = (h.rooms||[]).reduce((m,r)=>Math.min(m,r.rent||Infinity),Infinity);
     if(priceMax!==Infinity && minRent>priceMax) return false;
-    if(q && !(h.title && h.title.toLowerCase().includes(q)) && !(h.address && h.address.toLowerCase().includes(q))) return false;
-    if(selectedCampusPoint && h.lat && h.lng){
-      const d = haversine(selectedCampusPoint.lat, selectedCampusPoint.lng, h.lat, h.lng);
-      if(d > (Number($('filterDistance')?.value)||10000)) return false;
-    }
+    if(q && !((h.title||'').toLowerCase().includes(q) || (h.address||'').toLowerCase().includes(q))) return false;
     return true;
   });
 
-  const grid = $('sGrid'); grid.innerHTML='';
-  if(!list.length){ grid.innerHTML = `<div class="card"><p class="small">No houses found</p></div>`; updateMarkers([]); $('resultsCount').textContent='0'; return; }
+  const grid = $('sGrid'); grid.innerHTML = '';
+  if(!list.length){
+    grid.innerHTML = `<div class="card"><p class="small">No houses found — try a different search</p></div>`;
+    updateMarkers([]);
+    $('resultsCount').textContent='0';
+    return;
+  }
+
   list.forEach(h=>{
-    const photo = (h.photos && h.photos.length)?h.photos[0]:'https://i.imgur.com/ko4j1pK.jpeg';
+    const photo = (h.photos && h.photos.length)? h.photos[0] : 'https://i.imgur.com/ko4j1pK.jpeg';
     const roomsAvailable = (h.rooms||[]).filter(r=>r.available).length;
     const minRent = (h.rooms||[]).reduce((m,r)=>Math.min(m,r.rent||Infinity),Infinity);
-    const rentText = (minRent===Infinity)?'N/A':`KSh ${minRent}`;
+    const rentText = (minRent===Infinity)? 'N/A' : `KSh ${minRent}`;
     const div = document.createElement('div'); div.className='card';
     div.innerHTML = `
       <img src="${escapeHtml(photo)}" alt="">
@@ -252,79 +290,80 @@ async function renders(){
   updateMarkers(list);
 }
 
-/* map utilities */
+/* Map markers update */
 function updateMarkers(list){
   if(!map) return;
   Object.values(markers).forEach(m=>map.removeLayer(m));
-  markers={};
+  markers = {};
   (list||[]).forEach(h=>{
-    if(h.lat&&h.lng){
+    if(h.lat && h.lng){
       const m = L.marker([h.lat,h.lng]).addTo(map);
       m.bindPopup(`<strong>${escapeHtml(h.title)}</strong><br/>${escapeHtml(h.address)}<br/><button onclick="openDetail('${h.id}')">View</button>`);
-      markers[h.id]=m;
+      markers[h.id] = m;
     }
   });
   if(selectedMarker){ try{ map.removeLayer(selectedMarker);}catch(e){} selectedMarker=null; }
   if(selectedCampusPoint) selectedMarker = L.circleMarker([selectedCampusPoint.lat,selectedCampusPoint.lng],{radius:8,color:'#007BFF'}).addTo(map);
 }
 
-/* Haversine */
-function haversine(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; const c=2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R*c; }
-
-/* Detail modal */
+/* Open detail modal for house (shows up to 6 photos) */
 async function openDetail(id){
-  const doc = await db.collection('houses').doc(id).get().catch(()=>null);
-  const h = doc && doc.exists ? {id:doc.id, ...doc.data()} : null;
-  if(!h) return alert('House not found');
-  const photosHtml = (h.photos||[]).slice(0,6).map(u=>`<img src="${escapeHtml(u)}" style="width:100%;margin-bottom:8px;border-radius:6px">`).join('') ||
-     `<div style="height:140px;border-radius:6px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#999">No photos</div>`;
+  try{
+    const doc = db ? await db.collection('houses').doc(id).get().catch(()=>null) : null;
+    const h = doc && doc.exists ? ({ id:doc.id, ...doc.data() }) : null;
+    if(!h) return alert('House not found');
+    const photosHtml = (h.photos||[]).slice(0,6).map(u=>`<div style="margin-bottom:8px"><img src="${escapeHtml(u)}" style="width:100%;border-radius:6px"></div>`).join('') ||
+      `<div style="height:140px;border-radius:6px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#999">No photos</div>`;
+    const roomsHtml = (h.rooms||[]).map(r=>`<li style="margin-bottom:6px">${escapeHtml(r.name)} — KSh ${r.rent} ${r.available?'<span style="color:green">• Available</span>':'<span style="color:orange">• Occupied</span>'} ${r.available?` <button class="btn" onclick="prefillBooking('${h.id}','${r.id}')">Book</button>`:''}</li>`).join('')||'<li class="small">No rooms</li>';
 
-  const roomsHtml = (h.rooms||[]).map(r=>`<li>${escapeHtml(r.name)} — KSh ${r.rent} ${r.available?'<span style="color:green">• Available</span>':'<span style="color:orange">• Occupied</span>'} ${r.available?` <button class="btn" onclick="prefillBooking('${h.id}','${r.id}')">Book</button>`:''}</li>`).join('')||'<li class="small">No rooms</li>';
-
-  $('detailContent').innerHTML = `
-    <h2>${escapeHtml(h.title)}</h2>
-    ${photosHtml}
-    <p><strong>Address:</strong> ${escapeHtml(h.address)}</p>
-    <p><strong>University:</strong> ${escapeHtml(h.university||'')}</p>
-    <h4>Rooms</h4>
-    <ul>${roomsHtml}</ul>
-    <div style="margin-top:8px;display:flex;gap:8px">
-      <button class="btn" onclick="navToSearchAndCenter('${h.id}')">Center on map</button>
-    </div>
-  `;
-  showModal('detailModal');
+    $('detailContent').innerHTML = `
+      <h2 style="margin-top:0">${escapeHtml(h.title)}</h2>
+      ${photosHtml}
+      <p><strong>Address:</strong> ${escapeHtml(h.address||'')}</p>
+      <p><strong>University:</strong> ${escapeHtml(h.university||'')}</p>
+      <h4>Rooms</h4>
+      <ul style="padding-left:18px">${roomsHtml}</ul>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn" onclick="navToSearchAndCenter('${h.id}')">Center on map</button>
+      </div>
+    `;
+    showModal('detailModal');
+  }catch(e){ console.error(e); alert('Open detail failed'); }
 }
 
-/* nav to house on map */
+/* Center map on selected house */
 async function navToSearchAndCenter(id){
-  const doc = await db.collection('houses').doc(id).get().catch(()=>null);
-  const h = doc && doc.exists ? {id:doc.id, ...doc.data()} : null;
-  if(!h) return;
-  selectedCampusPoint = {lat:h.lat, lng:h.lng};
-  $('selectedCampusLabel').textContent = h.university || h.address || 'Selected';
-  initMapIfNeeded(h.lat,h.lng);
-  if(selectedMarker) try{ map.removeLayer(selectedMarker);}catch(e){}
-  selectedMarker = L.circleMarker([h.lat,h.lng],{radius:8,color:'#007BFF'}).addTo(map);
-  map.setView([h.lat,h.lng],15);
-  renders();
-  hideModal('detailModal');
+  try{
+    const doc = db ? await db.collection('houses').doc(id).get().catch(()=>null) : null;
+    const h = doc && doc.exists ? ({ id:doc.id, ...doc.data() }) : null;
+    if(!h) return;
+    selectedCampusPoint = { lat:h.lat, lng:h.lng };
+    $('selectedCampusLabel').textContent = h.university || h.address || 'Selected';
+    // show map
+    $('mapContainer').style.display = '';
+    $('mapPlaceholder').style.display = 'none';
+    initMapIfNeeded(h.lat,h.lng);
+    setTimeout(()=>{ try{ map.invalidateSize(); }catch(e){} }, 60);
+    if(selectedMarker) try{ map.removeLayer(selectedMarker);}catch(e){}
+    selectedMarker = L.circleMarker([h.lat,h.lng],{radius:8,color:'#007BFF'}).addTo(map);
+    map.setView([h.lat,h.lng],15);
+    renders();
+    hideModal('detailModal');
+  }catch(e){ console.error(e); }
 }
 
-/* Booking flow (open booking modal with prefilled fields) */
+/* Booking prefill & create (simple prompts) */
 function prefillBooking(houseId, roomId){
-  // simple prompt flow (you can replace with full modal)
   if(!currentUser) return alert('Please login to book');
   const name = currentUser.displayName || currentUser.email || '';
   const phone = prompt('Enter your phone for MPESA (07...)') || '';
   if(!phone) return alert('Phone required');
-
-  // collect checkin/checkout
   const checkin = prompt('Check-in date (YYYY-MM-DD)', '') || '';
   const checkout = prompt('Check-out date (YYYY-MM-DD)', '') || '';
-  // deposit/payment amount - fetch room deposit
+
   db.collection('houses').doc(houseId).get().then(doc=>{
-    const h = doc.exists ? doc.data() : null;
-    if(!h) return alert('House not found');
+    if(!doc.exists) return alert('House not found');
+    const h = doc.data();
     const room = (h.rooms||[]).find(r=>r.id===roomId);
     if(!room) return alert('Room not found');
     const booking = {
@@ -338,25 +377,25 @@ function prefillBooking(houseId, roomId){
       paid: false,
       createdAt: Date.now()
     };
-    // create booking doc
     db.collection('bookings').doc(booking.id).set(booking).then(()=>{
-      alert('Booking created. Please complete payment by entering MPESA reference in My Bookings.');
+      alert('Booking created. After payment, enter MPESA ref in My Bookings to confirm.');
       renders();
     }).catch(e=>{ console.error(e); alert('Booking failed'); });
-  }).catch(e=>{console.error(e); alert('Failed to read house');});
+  }).catch(e=>{ console.error(e); alert('Failed to read house'); });
 }
 
-/* Show / hide modals */
-function showModal(id){ $('overlay').classList.add('show'); $(id).classList.add('show'); }
-function hideModal(id){ $('overlay').classList.remove('show'); $(id).classList.remove('show'); }
+/* Modal helpers */
+function showModal(id){ $('overlay').classList.add('show'); $(id).classList.add('show'); $('overlay').style.display='block'; }
+function hideModal(id){ $('overlay').classList.remove('show'); $(id).classList.remove('show'); $('overlay').style.display='none'; }
 
-/* Auth UI */
+/* Auth UI wiring */
 $('loginBtn').addEventListener('click', ()=> showModal('authModal'));
 $('closeAuth').addEventListener('click', ()=> hideModal('authModal'));
 $('closeDetail').addEventListener('click', ()=> hideModal('detailModal'));
+$('closeMyBookings').addEventListener('click', ()=> hideModal('myBookingsModal'));
 $('overlay').addEventListener('click', ()=> { hideModal('authModal'); hideModal('detailModal'); hideModal('myBookingsModal'); });
 
-/* Sign up / sign in */
+/* Auth actions */
 $('btnSignUp').addEventListener('click', async ()=>{
   const email = $('email').value.trim(), password = $('password').value.trim();
   if(!email||!password) return alert('Email & password required');
@@ -376,13 +415,13 @@ $('btnGoogle').addEventListener('click', async ()=>{
 });
 $('signoutBtn').addEventListener('click', ()=> auth.signOut());
 
-/* Auth state */
+/* Monitor auth state */
 auth && auth.onAuthStateChanged(user=>{
   currentUser = user;
   $('who').textContent = user ? (user.displayName || user.email) : 'guest';
 });
 
-/* My bookings modal */
+/* My bookings list */
 $('linkBookings').addEventListener('click', async ()=>{
   if(!currentUser){ alert('Please sign in to view bookings'); return; }
   showModal('myBookingsModal');
@@ -390,7 +429,7 @@ $('linkBookings').addEventListener('click', async ()=>{
   try{
     const snap = await db.collection('bookings').where('tenantUid','==',currentUser.uid).orderBy('createdAt','desc').get();
     const items = snap.docs.map(d=>d.data());
-    if(!items.length) { $('mb_list').innerHTML = '<div class="small">No bookings found</div>'; return; }
+    if(!items.length){ $('mb_list').innerHTML = '<div class="small">No bookings found</div>'; return; }
     $('mb_list').innerHTML = items.map(b=>{
       const status = b.paid ? '<span style="color:green">PAID</span>' : '<span style="color:orange">Pending</span>';
       return `<div style="padding:10px;border-radius:8px;border:1px solid #eee;background:#fff;margin-bottom:8px">
@@ -406,7 +445,7 @@ $('linkBookings').addEventListener('click', async ()=>{
 });
 function viewBooking(id){ alert('Open bookings page — id: '+id); }
 
-/* Enter MPESA ref — record payment */
+/* Record MPESA ref for a booking */
 function enterMpesa(bookingId){
   const ref = prompt('Enter MPESA transaction code (e.g. ABC123XYZ)');
   if(!ref) return;
@@ -418,11 +457,11 @@ function enterMpesa(bookingId){
   }).catch(e=>{ console.error(e); alert('Failed to save'); });
 }
 
-/* simple search geocode using Nominatim */
+/* Geocode via Nominatim and show map */
 async function geocode(q){
   const query = q.toLowerCase().includes('kenya')? q : `${q} Kenya`;
   const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(query);
-  try{ const res = await fetch(url); if(!res.ok) throw new Error('geo fail'); const data = await res.json(); if(data && data.length) return {lat:parseFloat(data[0].lat), lng:parseFloat(data[0].lon), display_name:data[0].display_name}; }
+  try{ const res = await fetch(url); if(!res.ok) throw new Error('geo fail'); const data = await res.json(); if(data && data.length) return { lat:parseFloat(data[0].lat), lng:parseFloat(data[0].lon), display_name:data[0].display_name }; }
   catch(e){ console.error(e); }
   return null;
 }
@@ -433,30 +472,37 @@ $('mainSearch').addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(
 async function doSearch(){
   const q = ($('mainSearch').value||'').trim(); if(!q) return alert('Type a campus');
   const found = await geocode(q); if(!found) return alert('Location not found');
-  selectedCampusPoint = {lat:found.lat,lng:found.lng,display_name:found.display_name};
+  selectedCampusPoint = { lat:found.lat, lng:found.lng, display_name:found.display_name };
   $('selectedCampusLabel').textContent = found.display_name;
+  // show map
+  $('mapContainer').style.display = '';
+  $('mapPlaceholder').style.display = 'none';
   initMapIfNeeded(found.lat,found.lng);
+  setTimeout(()=>{ try{ map.invalidateSize(); }catch(e){} }, 60);
   if(selectedMarker) try{ map.removeLayer(selectedMarker);}catch(e){}
   selectedMarker = L.circleMarker([found.lat,found.lng],{radius:8,color:'#007BFF'}).addTo(map);
   map.setView([found.lat,found.lng],14);
   renders();
 }
 
-/* toggle tiles */
+/* Tile toggle */
 let usingSat=false;
-$('toggleTiles').addEventListener('click', ()=>{ if(!map) return alert('Search first'); usingSat=!usingSat; if(usingSat){ if(map.hasLayer(osm)) map.removeLayer(osm); sat.addTo(map); $('toggleTiles').textContent='Street'; } else { if(map.hasLayer(sat)) map.removeLayer(sat); osm.addTo(map); $('toggleTiles').textContent='Satellite'; } });
+$('toggleTiles').addEventListener('click', ()=>{
+  if(!map) return alert('Search first to open the map');
+  usingSat = !usingSat;
+  if(usingSat){ if(map.hasLayer(osm)) map.removeLayer(osm); sat.addTo(map); $('toggleTiles').textContent='Street'; }
+  else { if(map.hasLayer(sat)) map.removeLayer(sat); osm.addTo(map); $('toggleTiles').textContent='Satellite'; }
+});
 
-/* sidebar toggle */
+/* Sidebar toggle & nav */
 $('hamburger').addEventListener('click', ()=> { const sb = $('sidebar'); sb.classList.add('open'); sb.setAttribute('aria-hidden','false'); });
 document.body.addEventListener('click',(e)=>{ const sb=$('sidebar'); if(e.target.id!=='hamburger' && !sb.contains(e.target)) { sb.classList.remove('open'); sb.setAttribute('aria-hidden','true'); }});
 $('linkHome').addEventListener('click', ()=>{ $('mainSearch').value=''; $('resultsCount').textContent='—'; $('sGrid').innerHTML=`<div class="card"><p class="small">No houses — search above.</p></div>`; $('sidebar').classList.remove('open'); });
 $('links').addEventListener('click', ()=> { renders(); $('sidebar').classList.remove('open'); });
-$('linkLandlord').addEventListener('click', ()=> { window.location.href = 'landlord.html'; });
 
-/* initial */
-initMapIfNeeded();
+/* Initial render (empty until search) */
 renders();
-
 </script>
 </body>
 </html>
+

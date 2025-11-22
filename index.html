@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CampusRent — Tenant</title>
+
+<!-- favicon & logo -->
+<link rel="icon" href="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" type="image/png">
+<meta name="theme-color" content="#92adcc">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Firebase (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<style>
+:root{--brand:#92adcc;--white:#fff;--muted:#A9A9A9;--card-shadow:0 8px 20px rgba(20,20,20,0.06)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,system-ui;background:#f5f5f5;color:#222;-webkit-font-smoothing:antialiased}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-bottom:1px solid #e6e6e6;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.hamburger{font-size:20px;padding:8px;border-radius:8px;border:1px solid #e6e6e6;background:transparent;cursor:pointer}
+.search-area{display:flex;gap:8px;align-items:center;flex:1;justify-content:flex-end}
+.search-area input{padding:10px;border-radius:10px;border:1px solid #e6e6e6;min-width:220px}
+.btn{background:var(--brand);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+.small-btn{background:transparent;border:1px solid #e6e6e6;padding:8px 10px;border-radius:8px;cursor:pointer}
+.sidebar{position:fixed;left:-320px;top:0;bottom:0;width:300px;background:var(--brand);padding:16px;transition:left .22s;z-index:60;color:#fff}
+.sidebar.open{left:0}
+.side-link{display:block;background:transparent;border:none;padding:8px 10px;margin:6px 0;border-radius:8px;color:#fff;text-align:left;cursor:pointer}
+.side-link:hover{background:rgba(255,255,255,0.07)}
+.main{display:flex;gap:12px;padding:16px}
+.left-col{flex:1}
+.map-col{width:420px;max-width:45%;min-width:300px}
+.s-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.card{background:#fff;padding:12px;border-radius:12px;border:1px solid #eee;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:8px}
+.card img{width:100%;height:140px;object-fit:cover;border-radius:8px}
+.small{font-size:13px;color:#777}
+.vacant-pill{background:#e6f7ff;color:var(--brand);padding:6px 8px;border-radius:999px;font-size:13px}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;padding:14px;border-radius:10px;z-index:80;min-width:320px;border:1px solid #eee;box-shadow:0 12px 40px rgba(0,0,0,0.12);display:none}
+.modal.show{display:block}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:75;display:none}
+.overlay.show{display:block}
+#map{height:520px;border-radius:8px;background:#e9eef6}
+.form-row{display:flex;gap:8px;flex-wrap:wrap}
+.form-row input, .form-row select{padding:8px;border-radius:8px;border:1px solid #eee;flex:1}
+.logo-sm{width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff;padding:6px}
+.login-btn{background:#fff;color:var(--brand);padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+@media (max-width:920px){ .map-col{display:none} .main{flex-direction:column} .search-area input{min-width:120px} .sidebar{width:100%;left:-100%} .sidebar.open{left:0} }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <button id="hamburger" class="hamburger" aria-label="Open menu">☰</button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" alt="logo" class="logo-sm">
+      <div style="line-height:1">
+        <div style="font-weight:700;color:var(--brand)">CampusRent</div>
+        <div class="small">Find rooms near your campus</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-area">
+    <input id="mainSearch" placeholder="Enter university or campus and press Enter">
+    <button id="searchBtn" class="btn">Find</button>
+    <button id="toggleTiles" class="small-btn">Satellite</button>
+    <button id="loginBtn" class="login-btn">Login / Register</button>
+  </div>
+</header>
+
+<aside id="sidebar" class="sidebar" aria-hidden="true">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+    <img src="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" alt="logo" style="width:48px;height:48px;object-fit:contain;background:#fff;padding:6px;border-radius:8px">
+    <div>
+      <div style="font-weight:700">CampusRent</div>
+      <div style="font-size:13px;opacity:.9">Tenant portal</div>
+    </div>
+  </div>
+
+  <button class="side-link" id="linkHome">Home</button>
+  <button class="side-link" id="links">View Houses</button>
+  <button class="side-link" id="linkBookings">My Bookings</button>
+  <button class="side-link" id="linkLandlord"><a href=""> Landlord Portal →</a> </button>
+  <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:12px 0">
+  <div style="font-size:13px;opacity:.95">Logged-in: <span id="who" style="font-weight:700">guest</span></div>
+  <div style="margin-top:12px">
+    <button id="signoutBtn" class="side-link" style="background:rgba(255,255,255,0.08)">Sign out</button>
+  </div>
+</aside>
+
+<main class="main">
+  <section class="left-col">
+    <div style="margin-bottom:12px">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+        <div>
+          <label>Price max: <input id="priceMax" type="number" min="0" placeholder="e.g. 5000"></label>
+          <label style="margin-left:8px">Type:
+            <select id="typeFilter"><option value="ALL">All</option><option>Bedsitter</option><option>Single</option><option>1-Bedroom</option></select>
+          </label>
+        </div>
+        <div><span class="vacant-pill" id="resultsCount">—</span></div>
+      </div>
+    </div>
+
+    <section id="sGrid" class="s-grid" aria-live="polite"></section>
+  </section>
+
+  <aside class="map-col">
+    <div id="map" class=""></div>
+    <div style="margin-top:8px;font-size:13px;color:#666">Selected Campus: <strong id="selectedCampusLabel">None</strong></div>
+  </aside>
+</main>
+
+<div id="overlay" class="overlay"></div>
+
+<!-- DETAIL / BOOKING modal -->
+<div id="detailModal" class="modal" role="dialog" aria-modal="true">
+  <button id="closeDetail" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
+  <div id="detailContent"></div>
+</div>
+
+<!-- Login/Register modal -->
+<div id="authModal" class="modal" role="dialog" aria-modal="true" style="min-width:320px">
+  <button id="closeAuth" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
+  <div style="text-align:center;margin-bottom:10px">
+    <img src="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" alt="logo" style="width:84px;height:84px;object-fit:contain;background:#fff;padding:6px;border-radius:10px">
+    <h3 style="margin:8px 0 4px">Sign in / Register</h3>
+    <div class="small">Use Email/Password or continue with Google</div>
+  </div>
+
+  <div id="authUi">
+    <div style="margin-bottom:8px">
+      <input id="email" placeholder="Email" style="width:100%;padding:10px;border-radius:8px;border:1px solid #eee;margin-bottom:8px">
+      <input id="password" placeholder="Password" type="password" style="width:100%;padding:10px;border-radius:8px;border:1px solid #eee">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="btnSignUp" class="btn" style="flex:1">Register</button>
+      <button id="btnSignIn" class="btn" style="flex:1;background:#026b6b">Sign in</button>
+    </div>
+    <div style="margin-top:10px;text-align:center">
+      <button id="btnGoogle" class="btn" style="background:#fff;color:var(--brand);border:1px solid #eee">Continue with Google</button>
+    </div>
+  </div>
+</div>
+
+<!-- My bookings modal -->
+<div id="myBookingsModal" class="modal" style="min-width:420px">
+  <button class="closeModalSmall" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
+  <h3>My Bookings</h3>
+  <div id="mb_list" style="margin-top:10px"></div>
+</div>
+
+<script>
+/* ---------- CONFIG: paste your firebase config below ---------- */
+const firebaseConfig = {
+  /* FIREBASE CONFIG HERE - replace with your project's settings */
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+/* -------------------------------------------------------------- */
+
+let app, auth, db;
+function initFirebase(){
+  try{
+    app = firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+  }catch(e){ console.warn('firebase init failed', e); }
+}
+initFirebase();
+
+/* helpers */
+const $ = id => document.getElementById(id);
+const genId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* Application state */
+let map=null, osm=null, sat=null, markers={}, selectedCampusPoint=null, selectedMarker=null;
+let currentUser = null;
+
+/* Init UI and map */
+function initMapIfNeeded(lat=-1.286389,lng=36.817223){
+  if(map) return;
+  map = L.map('map',{center:[lat,lng],zoom:13});
+  osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+  sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+}
+
+/* Houses collection helper */
+async function loadHouses(){
+  // If using Firestore, read houses collection; else use demo list
+  try{
+    if(db){
+      const snapshot = await db.collection('houses').get();
+      return snapshot.docs.map(d=>({id:d.id,...d.data()}));
+    }
+  }catch(e){ console.error('load houses',e); }
+  return []; // empty if none
+}
+
+/* render houses */
+async function renders(){
+  const priceMax = Number($('priceMax').value) || Infinity;
+  const typeFilter = $('typeFilter').value || 'ALL';
+  const q = ($('mainSearch').value||'').trim().toLowerCase();
+
+  const houses = await loadHouses();
+  const list = (houses||[]).filter(h=>{
+    if(typeFilter!=='ALL' && h.type!==typeFilter) return false;
+    const minRent = (h.rooms||[]).reduce((m,r)=>Math.min(m,r.rent||Infinity),Infinity);
+    if(priceMax!==Infinity && minRent>priceMax) return false;
+    if(q && !(h.title && h.title.toLowerCase().includes(q)) && !(h.address && h.address.toLowerCase().includes(q))) return false;
+    if(selectedCampusPoint && h.lat && h.lng){
+      const d = haversine(selectedCampusPoint.lat, selectedCampusPoint.lng, h.lat, h.lng);
+      if(d > (Number($('filterDistance')?.value)||10000)) return false;
+    }
+    return true;
+  });
+
+  const grid = $('sGrid'); grid.innerHTML='';
+  if(!list.length){ grid.innerHTML = `<div class="card"><p class="small">No houses found</p></div>`; updateMarkers([]); $('resultsCount').textContent='0'; return; }
+  list.forEach(h=>{
+    const photo = (h.photos && h.photos.length)?h.photos[0]:'https://i.imgur.com/ko4j1pK.jpeg';
+    const roomsAvailable = (h.rooms||[]).filter(r=>r.available).length;
+    const minRent = (h.rooms||[]).reduce((m,r)=>Math.min(m,r.rent||Infinity),Infinity);
+    const rentText = (minRent===Infinity)?'N/A':`KSh ${minRent}`;
+    const div = document.createElement('div'); div.className='card';
+    div.innerHTML = `
+      <img src="${escapeHtml(photo)}" alt="">
+      <h4>${escapeHtml(h.title||'Untitled')}</h4>
+      <p class="small">${escapeHtml(h.address||'')}</p>
+      <p><strong>${rentText}</strong> • Type: ${escapeHtml(h.type||'')}</p>
+      <p class="small">${roomsAvailable} vacant</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn" onclick="openDetail('${h.id}')">View</button>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+
+  $('resultsCount').textContent = list.length + ' found';
+  updateMarkers(list);
+}
+
+/* map utilities */
+function updateMarkers(list){
+  if(!map) return;
+  Object.values(markers).forEach(m=>map.removeLayer(m));
+  markers={};
+  (list||[]).forEach(h=>{
+    if(h.lat&&h.lng){
+      const m = L.marker([h.lat,h.lng]).addTo(map);
+      m.bindPopup(`<strong>${escapeHtml(h.title)}</strong><br/>${escapeHtml(h.address)}<br/><button onclick="openDetail('${h.id}')">View</button>`);
+      markers[h.id]=m;
+    }
+  });
+  if(selectedMarker){ try{ map.removeLayer(selectedMarker);}catch(e){} selectedMarker=null; }
+  if(selectedCampusPoint) selectedMarker = L.circleMarker([selectedCampusPoint.lat,selectedCampusPoint.lng],{radius:8,color:'#007BFF'}).addTo(map);
+}
+
+/* Haversine */
+function haversine(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; const c=2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R*c; }
+
+/* Detail modal */
+async function openDetail(id){
+  const doc = await db.collection('houses').doc(id).get().catch(()=>null);
+  const h = doc && doc.exists ? {id:doc.id, ...doc.data()} : null;
+  if(!h) return alert('House not found');
+  const photosHtml = (h.photos||[]).slice(0,6).map(u=>`<img src="${escapeHtml(u)}" style="width:100%;margin-bottom:8px;border-radius:6px">`).join('') ||
+     `<div style="height:140px;border-radius:6px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#999">No photos</div>`;
+
+  const roomsHtml = (h.rooms||[]).map(r=>`<li>${escapeHtml(r.name)} — KSh ${r.rent} ${r.available?'<span style="color:green">• Available</span>':'<span style="color:orange">• Occupied</span>'} ${r.available?` <button class="btn" onclick="prefillBooking('${h.id}','${r.id}')">Book</button>`:''}</li>`).join('')||'<li class="small">No rooms</li>';
+
+  $('detailContent').innerHTML = `
+    <h2>${escapeHtml(h.title)}</h2>
+    ${photosHtml}
+    <p><strong>Address:</strong> ${escapeHtml(h.address)}</p>
+    <p><strong>University:</strong> ${escapeHtml(h.university||'')}</p>
+    <h4>Rooms</h4>
+    <ul>${roomsHtml}</ul>
+    <div style="margin-top:8px;display:flex;gap:8px">
+      <button class="btn" onclick="navToSearchAndCenter('${h.id}')">Center on map</button>
+    </div>
+  `;
+  showModal('detailModal');
+}
+
+/* nav to house on map */
+async function navToSearchAndCenter(id){
+  const doc = await db.collection('houses').doc(id).get().catch(()=>null);
+  const h = doc && doc.exists ? {id:doc.id, ...doc.data()} : null;
+  if(!h) return;
+  selectedCampusPoint = {lat:h.lat, lng:h.lng};
+  $('selectedCampusLabel').textContent = h.university || h.address || 'Selected';
+  initMapIfNeeded(h.lat,h.lng);
+  if(selectedMarker) try{ map.removeLayer(selectedMarker);}catch(e){}
+  selectedMarker = L.circleMarker([h.lat,h.lng],{radius:8,color:'#007BFF'}).addTo(map);
+  map.setView([h.lat,h.lng],15);
+  renders();
+  hideModal('detailModal');
+}
+
+/* Booking flow (open booking modal with prefilled fields) */
+function prefillBooking(houseId, roomId){
+  // simple prompt flow (you can replace with full modal)
+  if(!currentUser) return alert('Please login to book');
+  const name = currentUser.displayName || currentUser.email || '';
+  const phone = prompt('Enter your phone for MPESA (07...)') || '';
+  if(!phone) return alert('Phone required');
+
+  // collect checkin/checkout
+  const checkin = prompt('Check-in date (YYYY-MM-DD)', '') || '';
+  const checkout = prompt('Check-out date (YYYY-MM-DD)', '') || '';
+  // deposit/payment amount - fetch room deposit
+  db.collection('houses').doc(houseId).get().then(doc=>{
+    const h = doc.exists ? doc.data() : null;
+    if(!h) return alert('House not found');
+    const room = (h.rooms||[]).find(r=>r.id===roomId);
+    if(!room) return alert('Room not found');
+    const booking = {
+      id: genId(),
+      houseId, roomId,
+      tenantUid: currentUser.uid,
+      tenantName: name,
+      tenantPhone: phone,
+      checkin, checkout,
+      amountDue: room.deposit || 0,
+      paid: false,
+      createdAt: Date.now()
+    };
+    // create booking doc
+    db.collection('bookings').doc(booking.id).set(booking).then(()=>{
+      alert('Booking created. Please complete payment by entering MPESA reference in My Bookings.');
+      renders();
+    }).catch(e=>{ console.error(e); alert('Booking failed'); });
+  }).catch(e=>{console.error(e); alert('Failed to read house');});
+}
+
+/* Show / hide modals */
+function showModal(id){ $('overlay').classList.add('show'); $(id).classList.add('show'); }
+function hideModal(id){ $('overlay').classList.remove('show'); $(id).classList.remove('show'); }
+
+/* Auth UI */
+$('loginBtn').addEventListener('click', ()=> showModal('authModal'));
+$('closeAuth').addEventListener('click', ()=> hideModal('authModal'));
+$('closeDetail').addEventListener('click', ()=> hideModal('detailModal'));
+$('overlay').addEventListener('click', ()=> { hideModal('authModal'); hideModal('detailModal'); hideModal('myBookingsModal'); });
+
+/* Sign up / sign in */
+$('btnSignUp').addEventListener('click', async ()=>{
+  const email = $('email').value.trim(), password = $('password').value.trim();
+  if(!email||!password) return alert('Email & password required');
+  try{ await auth.createUserWithEmailAndPassword(email,password); alert('Registered.'); hideModal('authModal'); }
+  catch(e){ console.error(e); alert(e.message||'Register failed'); }
+});
+$('btnSignIn').addEventListener('click', async ()=>{
+  const email = $('email').value.trim(), password = $('password').value.trim();
+  if(!email||!password) return alert('Email & password required');
+  try{ await auth.signInWithEmailAndPassword(email,password); alert('Signed in'); hideModal('authModal'); }
+  catch(e){ console.error(e); alert(e.message||'Sign-in failed'); }
+});
+$('btnGoogle').addEventListener('click', async ()=>{
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try{ await auth.signInWithPopup(provider); hideModal('authModal'); }
+  catch(e){ console.error(e); alert('Google sign-in failed'); }
+});
+$('signoutBtn').addEventListener('click', ()=> auth.signOut());
+
+/* Auth state */
+auth && auth.onAuthStateChanged(user=>{
+  currentUser = user;
+  $('who').textContent = user ? (user.displayName || user.email) : 'guest';
+});
+
+/* My bookings modal */
+$('linkBookings').addEventListener('click', async ()=>{
+  if(!currentUser){ alert('Please sign in to view bookings'); return; }
+  showModal('myBookingsModal');
+  $('mb_list').innerHTML = '<div class="small">Loading...</div>';
+  try{
+    const snap = await db.collection('bookings').where('tenantUid','==',currentUser.uid).orderBy('createdAt','desc').get();
+    const items = snap.docs.map(d=>d.data());
+    if(!items.length) { $('mb_list').innerHTML = '<div class="small">No bookings found</div>'; return; }
+    $('mb_list').innerHTML = items.map(b=>{
+      const status = b.paid ? '<span style="color:green">PAID</span>' : '<span style="color:orange">Pending</span>';
+      return `<div style="padding:10px;border-radius:8px;border:1px solid #eee;background:#fff;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between"><strong>${escapeHtml(b.houseId)}</strong><small>${new Date(b.createdAt).toLocaleString()}</small></div>
+        <div class="small">Amount: KSh ${escapeHtml(String(b.amountDue))} • ${status}</div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          ${!b.paid?`<button class="btn" onclick="enterMpesa('${b.id}')">Enter MPESA ref</button>`:''}
+          <button class="btn" onclick="viewBooking('${b.id}')">View</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){ console.error(e); $('mb_list').innerHTML = '<div class="small">Failed to load bookings</div>'; }
+});
+function viewBooking(id){ alert('Open bookings page — id: '+id); }
+
+/* Enter MPESA ref — record payment */
+function enterMpesa(bookingId){
+  const ref = prompt('Enter MPESA transaction code (e.g. ABC123XYZ)');
+  if(!ref) return;
+  db.collection('bookings').doc(bookingId).get().then(doc=>{
+    if(!doc.exists) return alert('Booking not found');
+    const b = doc.data();
+    b.paid = true; b.mpesaRef = ref; b.paidAt = Date.now();
+    db.collection('bookings').doc(bookingId).set(b).then(()=>{ alert('Payment recorded. Booking confirmed.'); hideModal('myBookingsModal'); });
+  }).catch(e=>{ console.error(e); alert('Failed to save'); });
+}
+
+/* simple search geocode using Nominatim */
+async function geocode(q){
+  const query = q.toLowerCase().includes('kenya')? q : `${q} Kenya`;
+  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(query);
+  try{ const res = await fetch(url); if(!res.ok) throw new Error('geo fail'); const data = await res.json(); if(data && data.length) return {lat:parseFloat(data[0].lat), lng:parseFloat(data[0].lon), display_name:data[0].display_name}; }
+  catch(e){ console.error(e); }
+  return null;
+}
+
+/* Search UI */
+$('searchBtn').addEventListener('click', ()=> doSearch());
+$('mainSearch').addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
+async function doSearch(){
+  const q = ($('mainSearch').value||'').trim(); if(!q) return alert('Type a campus');
+  const found = await geocode(q); if(!found) return alert('Location not found');
+  selectedCampusPoint = {lat:found.lat,lng:found.lng,display_name:found.display_name};
+  $('selectedCampusLabel').textContent = found.display_name;
+  initMapIfNeeded(found.lat,found.lng);
+  if(selectedMarker) try{ map.removeLayer(selectedMarker);}catch(e){}
+  selectedMarker = L.circleMarker([found.lat,found.lng],{radius:8,color:'#007BFF'}).addTo(map);
+  map.setView([found.lat,found.lng],14);
+  renders();
+}
+
+/* toggle tiles */
+let usingSat=false;
+$('toggleTiles').addEventListener('click', ()=>{ if(!map) return alert('Search first'); usingSat=!usingSat; if(usingSat){ if(map.hasLayer(osm)) map.removeLayer(osm); sat.addTo(map); $('toggleTiles').textContent='Street'; } else { if(map.hasLayer(sat)) map.removeLayer(sat); osm.addTo(map); $('toggleTiles').textContent='Satellite'; } });
+
+/* sidebar toggle */
+$('hamburger').addEventListener('click', ()=> { const sb = $('sidebar'); sb.classList.add('open'); sb.setAttribute('aria-hidden','false'); });
+document.body.addEventListener('click',(e)=>{ const sb=$('sidebar'); if(e.target.id!=='hamburger' && !sb.contains(e.target)) { sb.classList.remove('open'); sb.setAttribute('aria-hidden','true'); }});
+$('linkHome').addEventListener('click', ()=>{ $('mainSearch').value=''; $('resultsCount').textContent='—'; $('sGrid').innerHTML=`<div class="card"><p class="small">No houses — search above.</p></div>`; $('sidebar').classList.remove('open'); });
+$('links').addEventListener('click', ()=> { renders(); $('sidebar').classList.remove('open'); });
+$('linkLandlord').addEventListener('click', ()=> { window.location.href = 'landlord.html'; });
+
+/* initial */
+initMapIfNeeded();
+renders();
+
+</script>
+</body>
+</html>

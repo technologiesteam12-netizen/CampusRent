@@ -57,6 +57,67 @@
   .auth-centered input{width:320px;max-width:92%}
   .auth-actions{display:flex;gap:8px;width:100%;max-width:360px}
   /* responsive adjustments */
+/* ===== Mobile Phones (Small) ===== */
+@media only screen and (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    padding: 15px;
+    max-width: 100%;
+  }
+
+  h1, h2, h3 {
+    font-size: 1.2rem;
+  }
+
+  input, button {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== Phones (Regular Size) ===== */
+@media only screen and (max-width: 768px) {
+  .container {
+    max-width: 95%;
+  }
+
+  h1, h2, h3 {
+    font-size: 1.4rem;
+  }
+
+  button {
+    padding: 12px;
+    font-size: 1rem;
+  }
+}
+
+/* ===== Tablets ===== */
+@media only screen and (max-width: 1024px) {
+  .container {
+    max-width: 80%;
+  }
+
+  h1, h2, h3 {
+    font-size: 1.6rem;
+  }
+}
+
+/* ===== Laptops & Small Desktops ===== */
+@media only screen and (max-width: 1366px) {
+  .container {
+    max-width: 60%;
+  }
+}
+
+/* ===== Large Screens ===== */
+@media only screen and (min-width: 1367px) {
+  .container {
+    max-width: 40%;
+  }
+}
 
 </style>
 </head>

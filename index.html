@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -7,7 +8,7 @@
 <link rel="icon" href="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" type="image/png">
 <meta name="theme-color" content="#92adcc">
 
-<!-- Leaflet -->
+<!-- Leaflet CSS/JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -19,43 +20,43 @@
 <style>
   :root{
     --brand:#92adcc; --white:#fff; --muted:#A9A9A9; --card-shadow:0 8px 20px rgba(20,20,20,0.06);
-    --text:#222;
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;font-family:Inter,Arial,system-ui;background:#f5f5f5;color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.28}
+  body{margin:0;font-family:Inter,Arial,system-ui;background:#f5f5f5;color:#222;-webkit-font-smoothing:antialiased}
   .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--white);border-bottom:1px solid #e6e6e6;gap:12px;position:sticky;top:0;z-index:40}
   .brand{display:flex;align-items:center;gap:12px}
   .hamburger{font-size:20px;padding:8px;border-radius:8px;border:1px solid #e6e6e6;background:transparent;cursor:pointer}
   .search-area{display:flex;gap:8px;align-items:center;flex:1;justify-content:flex-end}
-  .search-area input{padding:10px;border-radius:10px;border:1px solid #e6e6e6;min-width:180px}
+  .search-area input{padding:10px;border-radius:10px;border:1px solid #e6e6e6;min-width:220px}
   .btn{background:var(--brand);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
   .small-btn{background:transparent;border:1px solid #e6e6e6;padding:8px 10px;border-radius:8px;cursor:pointer}
   .sidebar{position:fixed;left:-320px;top:0;bottom:0;width:320px;background:var(--brand);padding:16px;transition:left .22s;z-index:60;color:#fff;overflow:auto}
   .sidebar.open{left:0}
   .side-link{display:block;background:transparent;border:none;padding:10px 8px;margin:6px 0;border-radius:8px;color:#fff;text-align:left;cursor:pointer}
   .side-link:hover{background:rgba(255,255,255,0.06)}
-  .main{display:flex;gap:12px;padding:16px;align-items:flex-start;min-height:calc(100vh - 72px)}
+  .main{display:flex;gap:12px;padding:16px;align-items:flex-start}
   .left-col{flex:1}
   .map-col{width:420px;max-width:45%;min-width:300px}
   .s-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
   .card{background:#fff;padding:12px;border-radius:12px;border:1px solid #eee;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:8px}
-  .card img{width:100%;height:160px;object-fit:cover;border-radius:8px}
-  h4{margin:0 0 4px 0}
+  .card img{width:100%;height:140px;object-fit:cover;border-radius:8px}
   .small{font-size:13px;color:#777}
   .vacant-pill{background:#e6f7ff;color:var(--brand);padding:6px 8px;border-radius:999px;font-size:13px}
-  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;padding:14px;border-radius:10px;z-index:90;min-width:320px;border:1px solid #eee;box-shadow:0 12px 40px rgba(0,0,0,0.12);display:none;max-height:90vh;overflow:auto}
+  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;padding:14px;border-radius:10px;z-index:100;min-width:320px;border:1px solid #eee;box-shadow:0 12px 40px rgba(0,0,0,0.12);display:none;max-height:90vh;overflow:auto}
   .modal.show{display:block}
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:85;display:none}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:95;display:none}
   .overlay.show{display:block}
   #map{height:520px;border-radius:8px;background:#e9eef6}
   .form-row{display:flex;gap:8px;flex-wrap:wrap}
   .form-row input, .form-row select, .form-row textarea{padding:8px;border-radius:8px;border:1px solid #eee;flex:1}
   .logo-sm{width:56px;height:56px;object-fit:contain;border-radius:8px;background:#fff;padding:6px}
   .login-btn{background:#fff;color:var(--brand);padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
-  .muted{color:var(--muted);font-size:13px}
   .gallery img{width:100%;object-fit:cover;border-radius:6px}
-  .top-note{background:#fff;padding:10px;border-radius:10px;border:1px solid #eee;margin-bottom:12px}
+  .muted{color:var(--muted);font-size:13px}
+  /* centered auth */
+  .auth-centered { display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 6px }
+  .auth-centered input{width:320px;max-width:92%}
+  .auth-actions{display:flex;gap:8px;width:100%;max-width:360px}
   /* responsive adjustments */
   @media (max-width:920px){
     .main{flex-direction:column;padding:12px}
@@ -64,13 +65,14 @@
     .search-area input{min-width:120px}
     .sidebar{width:100%;left:-100%}
     .sidebar.open{left:0}
-    .card img{height:180px}
+    .topbar{padding:8px}
+    .auth-centered input{width:260px}
   }
 </style>
 </head>
 <body>
 
-<header class="topbar">
+<header class="topbar" role="banner">
   <div class="brand">
     <button id="hamburger" class="hamburger" aria-label="Open menu">☰</button>
     <div style="display:flex;align-items:center;gap:10px">
@@ -103,8 +105,7 @@
   <button class="side-link" id="linkHome">Home</button>
   <button class="side-link" id="links">View Houses</button>
   <button class="side-link" id="linkBookings">My Bookings</button>
-   <button class="side-link" id="linkLandlord"><a href="  https://technologiesteam12-netizen.github.io/landlord-CampusReny/"> Landlord Portal →</a> </button>
-
+    <button class="side-link" id="linkLandlord"><a href="  https://technologiesteam12-netizen.github.io/landlord-CampusReny/"> Landlord Portal →</a> </button>
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:12px 0">
   <div style="font-size:13px;opacity:.95">Logged-in: <span id="who" style="font-weight:700">guest</span></div>
   <div style="margin-top:12px">
@@ -112,10 +113,10 @@
   </div>
 </aside>
 
-<main class="main">
+<main class="main" role="main">
   <section class="left-col">
-    <div class="top-note">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <div style="margin-bottom:12px">
+      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
         <div>
           <label>Price max: <input id="priceMax" type="number" min="0" placeholder="e.g. 5000"></label>
           <label style="margin-left:8px">Type:
@@ -136,6 +137,7 @@
       <div style="margin-top:8px;font-size:13px;color:#666">Selected Campus: <strong id="selectedCampusLabel">None</strong></div>
     </div>
 
+    <!-- Placeholder when map hidden -->
     <div id="mapPlaceholder" style="border-radius:8px;padding:22px;background:#fff;border:1px solid #eee;display:flex;align-items:center;justify-content:center;min-height:220px">
       <div style="text-align:center">
         <div style="font-weight:700;color:var(--brand);margin-bottom:6px">Map is hidden</div>
@@ -145,34 +147,31 @@
   </aside>
 </main>
 
-<div id="overlay" class="overlay" aria-hidden="true"></div>
+<div id="overlay" class="overlay" role="presentation"></div>
 
 <!-- DETAIL modal -->
-<div id="detailModal" class="modal" role="dialog" aria-modal="true">
+<div id="detailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
   <button id="closeDetail" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
   <div id="detailContent"></div>
 </div>
 
-<!-- Login/Register modal -->
-<div id="authModal" class="modal" role="dialog" aria-modal="true" style="min-width:320px">
-  <button id="closeAuth" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
-  <div style="text-align:center;margin-bottom:10px">
+<!-- Centered Login/Register modal -->
+<div id="authModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="auth-centered">
     <img src="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" alt="logo" style="width:84px;height:84px;object-fit:contain;background:#fff;padding:6px;border-radius:10px">
-    <h3 style="margin:8px 0 4px">Sign in / Register</h3>
-    <div class="small">Use Email/Password or continue with Google</div>
-  </div>
-
-  <div id="authUi">
-    <div style="margin-bottom:8px">
-      <input id="email" placeholder="Email" style="width:100%;padding:10px;border-radius:8px;border:1px solid #eee;margin-bottom:8px">
-      <input id="password" placeholder="Password" type="password" style="width:100%;padding:10px;border-radius:8px;border:1px solid #eee">
-    </div>
-    <div style="display:flex;gap:8px">
+    <h3 id="authTitle" style="margin:6px 0 0">Sign in / Register</h3>
+    <div class="small">Email/Password or continue with Google</div>
+    <input id="email" placeholder="Email" type="email" />
+    <input id="password" placeholder="Password" type="password" />
+    <div class="auth-actions">
       <button id="btnSignUp" class="btn" style="flex:1">Register</button>
       <button id="btnSignIn" class="btn" style="flex:1;background:#026b6b">Sign in</button>
     </div>
-    <div style="margin-top:10px;text-align:center">
-      <button id="btnGoogle" class="btn" style="background:#fff;color:var(--brand);border:1px solid #eee">Continue with Google</button>
+    <div style="width:100%;max-width:360px;text-align:center;margin-top:8px">
+      <button id="btnGoogle" class="btn" style="background:#fff;color:var(--brand);border:1px solid #eee;width:100%">Continue with Google</button>
+    </div>
+    <div style="width:100%;max-width:360px;text-align:center;margin-top:8px">
+      <button id="closeAuth" class="small-btn" style="width:100%;background:#fff">Close</button>
     </div>
   </div>
 </div>
@@ -184,20 +183,22 @@
   <div id="mb_list" style="margin-top:10px"></div>
 </div>
 
-<!-- Firebase & App code -->
+<!-- Firebase initialization (your config) -->
 <script>
-/* ---------- FIREBASE CONFIG (your project) ---------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyBNI_Pb_54NMvte-m6oYnwlpTikaqmHxqQ",
-  authDomain: "campus-rent-7d1ef.firebaseapp.com",
-  projectId: "campus-rent-7d1ef",
-  storageBucket: "campus-rent-7d1ef.firebasestorage.app",
-  messagingSenderId: "849345981750",
-  appId: "1:849345981750:web:a787bab1e485aa631b5797",
-  measurementId: "G-889BD0W9PX"
-};
-/* --------------------------------------------------- */
+  // User-provided firebase config (kept from your earlier message)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBNI_Pb_54NMvte-m6oYnwlpTikaqmHxqQ",
+    authDomain: "campus-rent-7d1ef.firebaseapp.com",
+    projectId: "campus-rent-7d1ef",
+    storageBucket: "campus-rent-7d1ef.firebasestorage.app",
+    messagingSenderId: "849345981750",
+    appId: "1:849345981750:web:a787bab1e485aa631b5797",
+    measurementId: "G-889BD0W9PX"
+  };
+</script>
 
+<script>
+/* ================== App code ================== */
 let app, auth, db;
 function initFirebase(){
   try{
@@ -220,6 +221,7 @@ function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;'
 let map=null, osm=null, sat=null, markers={}, selectedCampusPoint=null, selectedMarker=null;
 let currentUser=null;
 
+
 /* Map init - only when needed */
 function initMapIfNeeded(lat=-1.286389,lng=36.817223){
   if(map) return;
@@ -227,24 +229,22 @@ function initMapIfNeeded(lat=-1.286389,lng=36.817223){
     map = L.map('map',{center:[lat,lng],zoom:13});
     osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
     sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
-    // improve mobile touch interactions
-    map.touchZoom.enable();
-    map.scrollWheelZoom.disable(); // avoid accidental scroll on mobile
   }catch(e){ console.error('leaflet init', e); }
 }
 
-/* Load houses from Firestore (or empty array) */
+/* Load houses from Firestore; fallback to DEMO_HOUSES */
 async function loadHouses(){
   try{
     if(db){
       const snap = await db.collection('houses').get();
-      return snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      const houses = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      if(houses && houses.length) return houses;
     }
   }catch(e){ console.error('loadHouses', e); }
-  return [];
+  return DEMO_HOUSES;
 }
 
-/* Render houses */
+/* Render houses list (calls loadHouses each time so new landlord uploads show) */
 async function renders(){
   const priceMax = Number($('priceMax').value) || Infinity;
   const typeFilter = $('typeFilter').value || 'ALL';
@@ -255,7 +255,7 @@ async function renders(){
     if(typeFilter!=='ALL' && h.type!==typeFilter) return false;
     const minRent = (h.rooms||[]).reduce((m,r)=>Math.min(m,r.rent||Infinity),Infinity);
     if(priceMax!==Infinity && minRent>priceMax) return false;
-    if(q && !((h.title||'').toLowerCase().includes(q) || (h.address||'').toLowerCase().includes(q))) return false;
+    if(q && !((h.title||'').toLowerCase().includes(q) || (h.address||'').toLowerCase().includes(q) || (h.university||'').toLowerCase().includes(q))) return false;
     return true;
   });
 
@@ -275,12 +275,12 @@ async function renders(){
     const div = document.createElement('div'); div.className='card';
     div.innerHTML = `
       <img src="${escapeHtml(photo)}" alt="">
-      <h4>${escapeHtml(h.title||'Untitled')}</h4>
+      <h4 style="margin:0">${escapeHtml(h.title||'Untitled')}</h4>
       <p class="small">${escapeHtml(h.address||'')}</p>
       <p><strong>${rentText}</strong> • Type: ${escapeHtml(h.type||'')}</p>
       <p class="small">${roomsAvailable} vacant</p>
       <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn" onclick="openDetail('${h.id}')">View</button>
+        <button class="btn" onclick="openDetail('${escapeHtml(h.id)}')">View</button>
       </div>
     `;
     grid.appendChild(div);
@@ -298,7 +298,7 @@ function updateMarkers(list){
   (list||[]).forEach(h=>{
     if(h.lat && h.lng){
       const m = L.marker([h.lat,h.lng]).addTo(map);
-      m.bindPopup(`<strong>${escapeHtml(h.title)}</strong><br/>${escapeHtml(h.address)}<br/><button onclick="openDetail('${h.id}')">View</button>`);
+      m.bindPopup(`<strong>${escapeHtml(h.title)}</strong><br/>${escapeHtml(h.address)}<br/><button onclick="openDetail('${escapeHtml(h.id)}')">View</button>`);
       markers[h.id] = m;
     }
   });
@@ -309,24 +309,34 @@ function updateMarkers(list){
 /* Open detail modal for house (shows up to 6 photos) */
 async function openDetail(id){
   try{
-    const doc = db ? await db.collection('houses').doc(id).get().catch(()=>null) : null;
-    const h = doc && doc.exists ? ({ id:doc.id, ...doc.data() }) : null;
+    let h = null;
+    if(db){
+      const doc = await db.collection('houses').doc(id).get().catch(()=>null);
+      if(doc && doc.exists) h = { id:doc.id, ...doc.data() };
+    }
+    if(!h){
+      // fallback: search demo list
+      h = (await loadHouses()).find(x=>x.id===id) || null;
+    }
     if(!h) return alert('House not found');
     const photosHtml = (h.photos||[]).slice(0,6).map(u=>`<div style="margin-bottom:8px"><img src="${escapeHtml(u)}" style="width:100%;border-radius:6px"></div>`).join('') ||
       `<div style="height:140px;border-radius:6px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#999">No photos</div>`;
-    const roomsHtml = (h.rooms||[]).map(r=>`<li style="margin-bottom:6px">${escapeHtml(r.name)} — KSh ${r.rent} ${r.available?'<span style="color:green">• Available</span>':'<span style="color:orange">• Occupied</span>'} ${r.available?` <button class="btn" onclick="prefillBooking('${h.id}','${r.id}')">Book</button>`:''}</li>`).join('')||'<li class="small">No rooms</li>';
+    const roomsHtml = (h.rooms||[]).map(r=>`<li style="margin-bottom:6px">${escapeHtml(r.name)} — KSh ${r.rent} ${r.available?'<span style="color:green">• Available</span>':'<span style="color:orange">• Occupied</span>'} ${r.available?` <button class="btn" onclick="prefillBooking('${escapeHtml(h.id)}','${escapeHtml(r.id)}')">Book</button>`:''}</li>`).join('')||'<li class="small">No rooms</li>';
 
     $('detailContent').innerHTML = `
-      <h2 style="margin-top:0">${escapeHtml(h.title)}</h2>
+      <h2 style="margin-top:0" id="detailTitle">${escapeHtml(h.title)}</h2>
       ${photosHtml}
       <p><strong>Address:</strong> ${escapeHtml(h.address||'')}</p>
       <p><strong>University:</strong> ${escapeHtml(h.university||'')}</p>
+      <p><strong>Amenities:</strong> ${(h.amenities||[]).map(a=>escapeHtml(a)).join(', ')}</p>
       <h4>Rooms</h4>
       <ul style="padding-left:18px">${roomsHtml}</ul>
       <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn" onclick="navToSearchAndCenter('${h.id}')">Center on map</button>
+        <button class="btn" onclick="navToSearchAndCenter('${escapeHtml(h.id)}')">Center on map</button>
       </div>
     `;
+    // when auth modal is open we hide the map (per your request)
+    hideAuthAndEnsureMapHidden();
     showModal('detailModal');
   }catch(e){ console.error(e); alert('Open detail failed'); }
 }
@@ -334,8 +344,12 @@ async function openDetail(id){
 /* Center map on selected house */
 async function navToSearchAndCenter(id){
   try{
-    const doc = db ? await db.collection('houses').doc(id).get().catch(()=>null) : null;
-    const h = doc && doc.exists ? ({ id:doc.id, ...doc.data() }) : null;
+    let h = null;
+    if(db){
+      const doc = await db.collection('houses').doc(id).get().catch(()=>null);
+      if(doc && doc.exists) h = { id:doc.id, ...doc.data() };
+    }
+    if(!h) h = (await loadHouses()).find(x=>x.id===id) || null;
     if(!h) return;
     selectedCampusPoint = { lat:h.lat, lng:h.lng };
     $('selectedCampusLabel').textContent = h.university || h.address || 'Selected';
@@ -354,12 +368,18 @@ async function navToSearchAndCenter(id){
 
 /* Booking prefill & create (simple prompts) */
 function prefillBooking(houseId, roomId){
-  if(!currentUser) return alert('Please login to book');
+  if(!currentUser) {
+    // show auth centered and hide map while auth is center
+    showAuthModalCentered();
+    return;
+  }
   const name = currentUser.displayName || currentUser.email || '';
   const phone = prompt('Enter your phone for MPESA (07...)') || '';
   if(!phone) return alert('Phone required');
   const checkin = prompt('Check-in date (YYYY-MM-DD)', '') || '';
   const checkout = prompt('Check-out date (YYYY-MM-DD)', '') || '';
+
+  if(!db) return alert('Bookings require Firebase. Contact admin.');
 
   db.collection('houses').doc(houseId).get().then(doc=>{
     if(!doc.exists) return alert('House not found');
@@ -385,17 +405,31 @@ function prefillBooking(houseId, roomId){
 }
 
 /* Modal helpers */
-function showModal(id){ $('overlay').classList.add('show'); $(id).classList.add('show'); $('overlay').style.display='block'; }
-function hideModal(id){ $('overlay').classList.remove('show'); $(id).classList.remove('show'); $('overlay').style.display='none'; }
+function showModal(id){ $('overlay').classList.add('show'); $(id).classList.add('show'); }
+function hideModal(id){ $('overlay').classList.remove('show'); $(id).classList.remove('show'); }
 
-/* Auth UI wiring */
-$('loginBtn').addEventListener('click', ()=> showModal('authModal'));
-$('closeAuth').addEventListener('click', ()=> hideModal('authModal'));
+/* Auth UI logic: center modal and hide map while auth centered */
+function showAuthModalCentered(){
+  // hide the map when auth is centered
+  $('mapContainer').style.display = 'none';
+  $('mapPlaceholder').style.display = ''; // show placeholder while auth
+  showModal('authModal');
+}
+function hideAuthAndEnsureMapHidden(){
+  // If auth modal is open, map must be hidden (per your request)
+  if($( 'authModal' ).classList.contains('show')){
+    $('mapContainer').style.display = 'none';
+    $('mapPlaceholder').style.display = '';
+  }
+}
+
+/* Wire auth UI */
+$('loginBtn').addEventListener('click', showAuthModalCentered);
+$('closeAuth').addEventListener('click', ()=> { hideModal('authModal'); });
 $('closeDetail').addEventListener('click', ()=> hideModal('detailModal'));
 $('closeMyBookings').addEventListener('click', ()=> hideModal('myBookingsModal'));
-$('overlay').addEventListener('click', ()=> { hideModal('authModal'); hideModal('detailModal'); hideModal('myBookingsModal'); });
 
-/* Auth actions */
+// Sign up / sign in
 $('btnSignUp').addEventListener('click', async ()=>{
   const email = $('email').value.trim(), password = $('password').value.trim();
   if(!email||!password) return alert('Email & password required');
@@ -419,11 +453,26 @@ $('signoutBtn').addEventListener('click', ()=> auth.signOut());
 auth && auth.onAuthStateChanged(user=>{
   currentUser = user;
   $('who').textContent = user ? (user.displayName || user.email) : 'guest';
+  // When user logs in close auth and allow map to be used
+  if(user){
+    hideModal('authModal');
+    // if there is a previous search, show map
+    if(selectedCampusPoint){
+      $('mapContainer').style.display = '';
+      $('mapPlaceholder').style.display = 'none';
+      initMapIfNeeded(selectedCampusPoint.lat, selectedCampusPoint.lng);
+      setTimeout(()=>{ try{ map.invalidateSize(); }catch(e){} }, 60);
+    }
+  } else {
+    // user signed out -> hide map (per your instruction)
+    $('mapContainer').style.display = 'none';
+    $('mapPlaceholder').style.display = '';
+  }
 });
 
 /* My bookings list */
 $('linkBookings').addEventListener('click', async ()=>{
-  if(!currentUser){ alert('Please sign in to view bookings'); return; }
+  if(!currentUser){ showAuthModalCentered(); return; }
   showModal('myBookingsModal');
   $('mb_list').innerHTML = '<div class="small">Loading...</div>';
   try{
@@ -443,7 +492,7 @@ $('linkBookings').addEventListener('click', async ()=>{
     }).join('');
   }catch(e){ console.error(e); $('mb_list').innerHTML = '<div class="small">Failed to load bookings</div>'; }
 });
-function viewBooking(id){ alert('Open bookings page — id: '+id); }
+function viewBooking(id){ alert('Open booking details — id: '+id); }
 
 /* Record MPESA ref for a booking */
 function enterMpesa(bookingId){
@@ -474,9 +523,15 @@ async function doSearch(){
   const found = await geocode(q); if(!found) return alert('Location not found');
   selectedCampusPoint = { lat:found.lat, lng:found.lng, display_name:found.display_name };
   $('selectedCampusLabel').textContent = found.display_name;
-  // show map
-  $('mapContainer').style.display = '';
-  $('mapPlaceholder').style.display = 'none';
+  // show map (but if auth modal is open, per your request we keep it hidden while auth centered)
+  if(!($('authModal').classList.contains('show'))){
+    $('mapContainer').style.display = '';
+    $('mapPlaceholder').style.display = 'none';
+  } else {
+    // auth centered: keep placeholder visible
+    $('mapContainer').style.display = 'none';
+    $('mapPlaceholder').style.display = '';
+  }
   initMapIfNeeded(found.lat,found.lng);
   setTimeout(()=>{ try{ map.invalidateSize(); }catch(e){} }, 60);
   if(selectedMarker) try{ map.removeLayer(selectedMarker);}catch(e){}
@@ -500,9 +555,11 @@ document.body.addEventListener('click',(e)=>{ const sb=$('sidebar'); if(e.target
 $('linkHome').addEventListener('click', ()=>{ $('mainSearch').value=''; $('resultsCount').textContent='—'; $('sGrid').innerHTML=`<div class="card"><p class="small">No houses — search above.</p></div>`; $('sidebar').classList.remove('open'); });
 $('links').addEventListener('click', ()=> { renders(); $('sidebar').classList.remove('open'); });
 
-/* Initial render (empty until search) */
+/* Initial render: map hidden, show demo houses list */
+$('mapContainer').style.display = 'none';
+$('mapPlaceholder').style.display = '';
 renders();
+
 </script>
 </body>
 </html>
-

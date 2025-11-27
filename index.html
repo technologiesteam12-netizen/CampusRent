@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>CampusRent — Tenant</title>
+<title>CampusRent — Tenant (Bookings + MPESA)</title>
 <link rel="icon" href="https://i.ibb.co/1fk4cgjr/Chat-GPT-Image-Nov-21-2025-05-20-42-PM.png" type="image/png">
 <meta name="theme-color" content="#92adcc">
 
@@ -11,10 +11,11 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Firebase (compat) -->
+<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <style>
   :root{
@@ -52,73 +53,18 @@
   .login-btn{background:#fff;color:var(--brand);padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
   .gallery img{width:100%;object-fit:cover;border-radius:6px}
   .muted{color:var(--muted);font-size:13px}
-  /* centered auth */
+  .chat-box{height:260px;overflow:auto;border-radius:8px;border:1px solid #eee;padding:8px;background:#fbfdff}
+  .msg-tenant{background:#e8f0ff;padding:6px 8px;border-radius:8px;display:inline-block}
+  .msg-landlord{background:#e6ffe6;padding:6px 8px;border-radius:8px;display:inline-block}
   .auth-centered { display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 6px }
   .auth-centered input{width:320px;max-width:92%}
   .auth-actions{display:flex;gap:8px;width:100%;max-width:360px}
-  /* responsive adjustments */
-/* ===== Mobile Phones (Small) ===== */
-@media only screen and (max-width: 480px) {
-  body {
-    padding: 10px;
+  .field-label{font-size:13px;color:#555;margin-bottom:6px}
+  .error{color:#b00020;font-size:13px}
+  @media only screen and (max-width: 768px) {
+    .main{flex-direction:column;padding:12px}
+    .map-col{width:100%;min-width:unset;max-width:unset}
   }
-
-  .container {
-    padding: 15px;
-    max-width: 100%;
-  }
-
-  h1, h2, h3 {
-    font-size: 1.2rem;
-  }
-
-  input, button {
-    padding: 10px;
-    font-size: 0.9rem;
-  }
-}
-
-/* ===== Phones (Regular Size) ===== */
-@media only screen and (max-width: 768px) {
-  .container {
-    max-width: 95%;
-  }
-
-  h1, h2, h3 {
-    font-size: 1.4rem;
-  }
-
-  button {
-    padding: 12px;
-    font-size: 1rem;
-  }
-}
-
-/* ===== Tablets ===== */
-@media only screen and (max-width: 1024px) {
-  .container {
-    max-width: 80%;
-  }
-
-  h1, h2, h3 {
-    font-size: 1.6rem;
-  }
-}
-
-/* ===== Laptops & Small Desktops ===== */
-@media only screen and (max-width: 1366px) {
-  .container {
-    max-width: 60%;
-  }
-}
-
-/* ===== Large Screens ===== */
-@media only screen and (min-width: 1367px) {
-  .container {
-    max-width: 40%;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -156,7 +102,7 @@
   <button class="side-link" id="linkHome">Home</button>
   <button class="side-link" id="links">View Houses</button>
   <button class="side-link" id="linkBookings">My Bookings</button>
-    <button class="side-link" id="linkLandlord"><a href="  https://technologiesteam12-netizen.github.io/landlord-CampusReny/"> Landlord Portal →</a> </button>
+  <button class="side-link" id="linkLandlord"><a href="https://technologiesteam12-netizen.github.io/landlord-CampusReny/" style="color:inherit;text-decoration:none"> Landlord Portal →</a></button>
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:12px 0">
   <div style="font-size:13px;opacity:.95">Logged-in: <span id="who" style="font-weight:700">guest</span></div>
   <div style="margin-top:12px">
@@ -182,13 +128,11 @@
   </section>
 
   <aside class="map-col">
-    <!-- MAP: initially hidden until search -->
     <div id="mapContainer" style="display:none">
       <div id="map"></div>
       <div style="margin-top:8px;font-size:13px;color:#666">Selected Campus: <strong id="selectedCampusLabel">None</strong></div>
     </div>
 
-    <!-- Placeholder when map hidden -->
     <div id="mapPlaceholder" style="border-radius:8px;padding:22px;background:#fff;border:1px solid #eee;display:flex;align-items:center;justify-content:center;min-height:220px">
       <div style="text-align:center">
         <div style="font-weight:700;color:var(--brand);margin-bottom:6px">Map is hidden</div>
@@ -204,6 +148,13 @@
 <div id="detailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
   <button id="closeDetail" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
   <div id="detailContent"></div>
+</div>
+
+<!-- Booking modal (used for both booking form + chat) -->
+<div id="bookingModal" class="modal" style="min-width:420px">
+  <button id="closeBooking" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
+  <h3 id="bookingTitle">Book room</h3>
+  <div id="bookingBody"></div>
 </div>
 
 <!-- Centered Login/Register modal -->
@@ -227,51 +178,55 @@
   </div>
 </div>
 
-<!-- My bookings modal -->
-<div id="myBookingsModal" class="modal" style="min-width:420px">
+<!-- My bookings / inquiries modal -->
+<div id="myBookingsModal" class="modal" style="min-width:520px">
   <button id="closeMyBookings" style="float:right;border:none;background:transparent;font-size:18px;">✕</button>
   <h3>My Bookings</h3>
   <div id="mb_list" style="margin-top:10px"></div>
 </div>
 
-<!-- Firebase initialization (your config) -->
 <script>
-  // User-provided firebase config (kept from your earlier message)
-  const firebaseConfig = {
-    apiKey: "AIzaSyBNI_Pb_54NMvte-m6oYnwlpTikaqmHxqQ",
-    authDomain: "campus-rent-7d1ef.firebaseapp.com",
-    projectId: "campus-rent-7d1ef",
-    storageBucket: "campus-rent-7d1ef.firebasestorage.app",
-    messagingSenderId: "849345981750",
-    appId: "1:849345981750:web:a787bab1e485aa631b5797",
-    measurementId: "G-889BD0W9PX"
-  };
-</script>
+/* --------------- Firebase config (same project) --------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyBNI_Pb_54NMvte-m6oYnwlpTikaqmHxqQ",
+  authDomain: "campus-rent-7d1ef.firebaseapp.com",
+  databaseURL: "https://campus-rent-7d1ef-default-rtdb.firebaseio.com",
+  projectId: "campus-rent-7d1ef",
+  storageBucket: "campus-rent-7d1ef.appspot.com",
+  messagingSenderId: "849345981750",
+  appId: "1:849345981750:web:a787bab1e485aa631b5797",
+  measurementId: "G-889BD0W9PX"
+};
 
-<script>
-/* ================== App code ================== */
-let app, auth, db;
+let app, auth, rdb, firestore;
 function initFirebase(){
   try{
     app = firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
-    db = firebase.firestore();
-    console.log('Firebase initialized');
-  }catch(e){
-    console.warn('Firebase init failed (check config)', e);
-  }
+    rdb = firebase.database();
+    firestore = firebase.firestore();
+    console.log('Firebase initialized (Auth, Firestore, RTDB)');
+  }catch(e){ console.error('firebase init failed', e); alert('Firebase init failed'); }
 }
 initFirebase();
 
-/* Helpers */
 const $ = id => document.getElementById(id);
-const genId = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const genId = ()=> Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 
-/* App state */
+/* Simple escape for text content (not for base64/data URLs) */
+function escapeHtml(s){
+  if(!s) return '';
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/* Map & state */
 let map=null, osm=null, sat=null, markers={}, selectedCampusPoint=null, selectedMarker=null;
-let currentUser=null;
-
+let currentUser = null;
 
 /* Map init - only when needed */
 function initMapIfNeeded(lat=-1.286389,lng=36.817223){
@@ -283,30 +238,59 @@ function initMapIfNeeded(lat=-1.286389,lng=36.817223){
   }catch(e){ console.error('leaflet init', e); }
 }
 
-/* Load houses from Firestore; fallback to DEMO_HOUSES */
-async function loadHouses(){
+/* ----------------- Load properties from Firestore + RTDB images ----------------- */
+async function loadPropertiesFromFirestore(){
   try{
-    if(db){
-      const snap = await db.collection('houses').get();
-      const houses = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-      if(houses && houses.length) return houses;
+    const snap = await firestore.collection('properties').get();
+    const arr = [];
+    snap.forEach(doc=>{
+      const data = doc.data() || {};
+      arr.push({ id: doc.id, ...data });
+    });
+
+    // for each property, fetch images from RTDB propertyImages/{id}/images
+    for (let i=0;i<arr.length;i++){
+      const p = arr[i];
+      try{
+        const photoSnap = await rdb.ref('propertyImages/' + p.id + '/images').once('value');
+        if(photoSnap.exists()){
+          const val = photoSnap.val();
+          let imgs = Array.isArray(val) ? val : Object.values(val);
+          imgs = imgs.map(s=>{
+            if(!s) return null;
+            if(typeof s !== 'string') return null;
+            if(s.startsWith('data:')) return s;
+            return 'data:image/jpeg;base64,' + s;
+          }).filter(Boolean);
+          p.photos = imgs;
+        } else {
+          p.photos = [];
+        }
+      }catch(e){
+        console.warn('failed to load images for', p.id, e);
+        p.photos = [];
+      }
+      if(p.lat) p.lat = Number(p.lat);
+      if(p.lng) p.lng = Number(p.lng);
     }
-  }catch(e){ console.error('loadHouses', e); }
-  return DEMO_HOUSES;
+
+    arr.sort((a,b)=>(b.createdAt||0) - (a.createdAt||0));
+    return arr;
+  }catch(e){ console.error('loadPropertiesFromFirestore error', e); return []; }
 }
 
-/* Render houses list (calls loadHouses each time so new landlord uploads show) */
+/* Renders (main) */
 async function renders(){
   const priceMax = Number($('priceMax').value) || Infinity;
   const typeFilter = $('typeFilter').value || 'ALL';
   const q = ($('mainSearch').value||'').trim().toLowerCase();
 
-  const houses = await loadHouses();
+  const houses = await loadPropertiesFromFirestore();
   const list = (houses||[]).filter(h=>{
-    if(typeFilter!=='ALL' && h.type!==typeFilter) return false;
-    const minRent = (h.rooms||[]).reduce((m,r)=>Math.min(m,r.rent||Infinity),Infinity);
+    if(typeFilter!=='ALL' && (h.type||'') !== typeFilter) return false;
+    const minRent = (h.price !== undefined && h.price !== null) ? Number(h.price) : Infinity;
     if(priceMax!==Infinity && minRent>priceMax) return false;
-    if(q && !((h.title||'').toLowerCase().includes(q) || (h.address||'').toLowerCase().includes(q) || (h.university||'').toLowerCase().includes(q))) return false;
+    if(q && !((h.title||'').toLowerCase().includes(q) || (h.address||'').toLowerCase().includes(q) || (h.uni||'').toLowerCase().includes(q))) return false;
     return true;
   });
 
@@ -314,26 +298,33 @@ async function renders(){
   if(!list.length){
     grid.innerHTML = `<div class="card"><p class="small">No houses found — try a different search</p></div>`;
     updateMarkers([]);
-    $('resultsCount').textContent='0';
+    $('resultsCount').textContent = '0';
     return;
   }
 
   list.forEach(h=>{
-    const photo = (h.photos && h.photos.length)? h.photos[0] : 'https://i.imgur.com/ko4j1pK.jpeg';
-    const roomsAvailable = (h.rooms||[]).filter(r=>r.available).length;
-    const minRent = (h.rooms||[]).reduce((m,r)=>Math.min(m,r.rent||Infinity),Infinity);
-    const rentText = (minRent===Infinity)? 'N/A' : `KSh ${minRent}`;
+    const photo = (h.photos && h.photos.length) ? h.photos[0] : (h.photoUrl || 'https://i.imgur.com/ko4j1pK.jpeg');
+    const roomsAvailable = (h.rooms||[]).filter(r=>r.available).length || (h.available ? 1 : 0);
+    const rentText = h.price ? `KSh ${h.price}` : 'N/A';
     const div = document.createElement('div'); div.className='card';
-    div.innerHTML = `
-      <img src="${escapeHtml(photo)}" alt="">
+
+    const imgEl = document.createElement('img');
+    imgEl.src = photo;
+    imgEl.alt = h.title || 'property photo';
+    div.appendChild(imgEl);
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
       <h4 style="margin:0">${escapeHtml(h.title||'Untitled')}</h4>
       <p class="small">${escapeHtml(h.address||'')}</p>
-      <p><strong>${rentText}</strong> • Type: ${escapeHtml(h.type||'')}</p>
-      <p class="small">${roomsAvailable} vacant</p>
+      <p><strong>${escapeHtml(rentText)}</strong> • ${escapeHtml(h.uni||h.university||'')}</p>
+      <p class="small">${escapeHtml(String(roomsAvailable))} vacant</p>
       <div style="display:flex;gap:8px;justify-content:flex-end">
         <button class="btn" onclick="openDetail('${escapeHtml(h.id)}')">View</button>
+        <button class="small-btn" onclick="startBooking('${escapeHtml(h.id)}')">Book</button>
       </div>
     `;
+    div.appendChild(wrapper);
     grid.appendChild(div);
   });
 
@@ -349,7 +340,8 @@ function updateMarkers(list){
   (list||[]).forEach(h=>{
     if(h.lat && h.lng){
       const m = L.marker([h.lat,h.lng]).addTo(map);
-      m.bindPopup(`<strong>${escapeHtml(h.title)}</strong><br/>${escapeHtml(h.address)}<br/><button onclick="openDetail('${escapeHtml(h.id)}')">View</button>`);
+      const popupHtml = `<strong>${escapeHtml(h.title||'')}</strong><br/>${escapeHtml(h.address||'')}<br/><button onclick="openDetail('${escapeHtml(h.id)}')">View</button>`;
+      m.bindPopup(popupHtml);
       markers[h.id] = m;
     }
   });
@@ -357,56 +349,60 @@ function updateMarkers(list){
   if(selectedCampusPoint) selectedMarker = L.circleMarker([selectedCampusPoint.lat,selectedCampusPoint.lng],{radius:8,color:'#007BFF'}).addTo(map);
 }
 
-/* Open detail modal for house (shows up to 6 photos) */
+/* Open detail modal - reads property from Firestore (single) and RTDB images */
 async function openDetail(id){
   try{
-    let h = null;
-    if(db){
-      const doc = await db.collection('houses').doc(id).get().catch(()=>null);
-      if(doc && doc.exists) h = { id:doc.id, ...doc.data() };
-    }
-    if(!h){
-      // fallback: search demo list
-      h = (await loadHouses()).find(x=>x.id===id) || null;
-    }
-    if(!h) return alert('House not found');
-    const photosHtml = (h.photos||[]).slice(0,6).map(u=>`<div style="margin-bottom:8px"><img src="${escapeHtml(u)}" style="width:100%;border-radius:6px"></div>`).join('') ||
-      `<div style="height:140px;border-radius:6px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#999">No photos</div>`;
-    const roomsHtml = (h.rooms||[]).map(r=>`<li style="margin-bottom:6px">${escapeHtml(r.name)} — KSh ${r.rent} ${r.available?'<span style="color:green">• Available</span>':'<span style="color:orange">• Occupied</span>'} ${r.available?` <button class="btn" onclick="prefillBooking('${escapeHtml(h.id)}','${escapeHtml(r.id)}')">Book</button>`:''}</li>`).join('')||'<li class="small">No rooms</li>';
+    const doc = await firestore.collection('properties').doc(id).get();
+    if(!doc.exists) return alert('Property not found');
+    const h = doc.data();
+
+    // fetch images
+    let photos = [];
+    try{
+      const photoSnap = await rdb.ref('propertyImages/' + id + '/images').once('value');
+      if(photoSnap.exists()){
+        const val = photoSnap.val();
+        photos = Array.isArray(val) ? val : Object.values(val);
+        photos = photos.map(s=> typeof s === 'string' && s.startsWith('data:') ? s : ('data:image/jpeg;base64,' + s) );
+      }
+    }catch(e){ console.warn('detail image load failed', e); }
+
+    const photosHtml = (photos && photos.length) ? photos.slice(0,6).map(src=>`<div style="margin-bottom:8px"><img src="${src}" style="width:100%;border-radius:6px"></div>`).join('') :
+      (h.photoUrl ? `<div style="margin-bottom:8px"><img src="${escapeHtml(h.photoUrl)}" style="width:100%;border-radius:6px"></div>` :
+        `<div style="height:140px;border-radius:6px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#999">No photos</div>`);
+
+    const roomsHtml = (h.rooms||[]).map(r=>`<li style="margin-bottom:6px">${escapeHtml(r.name)} — KSh ${escapeHtml(String(r.rent||''))} ${r.available?'<span style="color:green">• Available</span>':'<span style="color:orange">• Occupied</span>'} ${r.available?` <button class="btn" onclick="startBooking('${escapeHtml(id)}')">Book</button>`:''}</li>`).join('')||'<li class="small">No rooms</li>';
 
     $('detailContent').innerHTML = `
       <h2 style="margin-top:0" id="detailTitle">${escapeHtml(h.title)}</h2>
       ${photosHtml}
       <p><strong>Address:</strong> ${escapeHtml(h.address||'')}</p>
-      <p><strong>University:</strong> ${escapeHtml(h.university||'')}</p>
+      <p><strong>University:</strong> ${escapeHtml(h.uni||h.university||'')}</p>
       <p><strong>Amenities:</strong> ${(h.amenities||[]).map(a=>escapeHtml(a)).join(', ')}</p>
       <h4>Rooms</h4>
       <ul style="padding-left:18px">${roomsHtml}</ul>
       <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn" onclick="navToSearchAndCenter('${escapeHtml(h.id)}')">Center on map</button>
+        <button class="btn" onclick="navToSearchAndCenter('${escapeHtml(id)}')">Center on map</button>
+        <button class="small-btn" onclick="startBooking('${escapeHtml(id)}')">Book</button>
       </div>
     `;
-    // when auth modal is open we hide the map (per your request)
     hideAuthAndEnsureMapHidden();
     showModal('detailModal');
   }catch(e){ console.error(e); alert('Open detail failed'); }
 }
 
-/* Center map on selected house */
+/* Center map on selected property */
 async function navToSearchAndCenter(id){
   try{
-    let h = null;
-    if(db){
-      const doc = await db.collection('houses').doc(id).get().catch(()=>null);
-      if(doc && doc.exists) h = { id:doc.id, ...doc.data() };
+    const doc = await firestore.collection('properties').doc(id).get();
+    if(!doc.exists) return;
+    const h = doc.data();
+    selectedCampusPoint = { lat: Number(h.lat), lng: Number(h.lng) };
+    $('selectedCampusLabel').textContent = h.uni || h.address || 'Selected';
+    if(!($('authModal').classList.contains('show'))){
+      $('mapContainer').style.display = '';
+      $('mapPlaceholder').style.display = 'none';
     }
-    if(!h) h = (await loadHouses()).find(x=>x.id===id) || null;
-    if(!h) return;
-    selectedCampusPoint = { lat:h.lat, lng:h.lng };
-    $('selectedCampusLabel').textContent = h.university || h.address || 'Selected';
-    // show map
-    $('mapContainer').style.display = '';
-    $('mapPlaceholder').style.display = 'none';
     initMapIfNeeded(h.lat,h.lng);
     setTimeout(()=>{ try{ map.invalidateSize(); }catch(e){} }, 60);
     if(selectedMarker) try{ map.removeLayer(selectedMarker);}catch(e){}
@@ -417,80 +413,242 @@ async function navToSearchAndCenter(id){
   }catch(e){ console.error(e); }
 }
 
-/* Booking prefill & create (simple prompts) */
-function prefillBooking(houseId, roomId){
-  if(!currentUser) {
-    // show auth centered and hide map while auth is center
+/* ----------------- Booking flow ----------------- */
+/*
+  Requirements:
+  - User must be logged in to book; otherwise show auth modal
+  - Booking fields:
+    bookingId, tenantId, tenantName, tenantPhone, propertyId, propertyTitle, landlordId,
+    amount, mpesaPhone, mpesaCode, roomType, checkinDate, note, dateCreated, status:"pending"
+  - Save booking to Firestore /bookings/<bookingId>
+  - Save payment to Firestore /payments/<paymentId>
+  - Create initial chat message in RTDB chats/<bookingId>/messages
+*/
+
+async function startBooking(propertyId){
+  // fetch property to get details
+  const doc = await firestore.collection('properties').doc(propertyId).get();
+  if(!doc.exists) return alert('Property not found');
+  const prop = doc.data();
+
+  if(!currentUser){
+    // show auth modal and advise
     showAuthModalCentered();
+    alert('You must sign in to book. After signing in, click Book again.');
     return;
   }
-  const name = currentUser.displayName || currentUser.email || '';
-  const phone = prompt('Enter your phone for MPESA (07...)') || '';
-  if(!phone) return alert('Phone required');
-  const checkin = prompt('Check-in date (YYYY-MM-DD)', '') || '';
-  const checkout = prompt('Check-out date (YYYY-MM-DD)', '') || '';
 
-  if(!db) return alert('Bookings require Firebase. Contact admin.');
+  // build booking form
+  const bodyHtml = `
+    <div style="display:grid;gap:8px">
+      <div><div class="field-label">Property</div><strong>${escapeHtml(prop.title||'')}</strong></div>
+      <div>
+        <div class="field-label">Your name</div>
+        <input id="bk_name" value="${escapeHtml(currentUser.displayName||currentUser.email||'')}" placeholder="Full name">
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <div class="field-label">Phone (tenant)</div>
+          <input id="bk_phone" placeholder="07...">
+        </div>
+        <div style="width:140px">
+          <div class="field-label">Gender</div>
+          <select id="bk_gender">
+            <option>Prefer not to say</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <div class="field-label">Check-in date</div>
+          <input id="bk_checkin" type="date">
+        </div>
+        <div style="width:160px">
+          <div class="field-label">Room type</div>
+          <select id="bk_roomtype">
+            <option value="single">Single</option>
+            <option value="shared">Shared</option>
+            <option value="bedsitter">Bedsitter</option>
+          </select>
+        </div>
+      </div>
 
-  db.collection('houses').doc(houseId).get().then(doc=>{
-    if(!doc.exists) return alert('House not found');
-    const h = doc.data();
-    const room = (h.rooms||[]).find(r=>r.id===roomId);
-    if(!room) return alert('Room not found');
-    const booking = {
-      id: genId(),
-      houseId, roomId,
-      tenantUid: currentUser.uid,
+      <div style="display:flex;gap:8px">
+        <div style="flex:1">
+          <div class="field-label">M-Pesa phone</div>
+          <input id="bk_mpesa_phone" placeholder="07...">
+        </div>
+        <div style="width:160px">
+          <div class="field-label">Amount (KSh)</div>
+          <input id="bk_amount" value="${escapeHtml(String(prop.price||''))}" readonly>
+        </div>
+      </div>
+
+      <div>
+        <div class="field-label">M-Pesa transaction code (required)</div>
+        <input id="bk_mpesa_code" placeholder="MPESA_REF">
+      </div>
+
+      <div>
+        <div class="field-label">Note to landlord (optional)</div>
+        <textarea id="bk_note" placeholder="Any message for the landlord..." style="min-height:80px"></textarea>
+      </div>
+
+      <div class="error" id="bk_error" style="display:none"></div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn" id="bk_submitBtn">Submit booking & record payment</button>
+        <button class="small-btn" id="bk_cancelBtn">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  $('bookingBody').innerHTML = bodyHtml;
+  $('bookingTitle').textContent = `Book — ${prop.title || ''}`;
+  showModal('bookingModal');
+
+  // handlers
+  $('bk_cancelBtn').onclick = ()=> hideModal('bookingModal');
+
+  $('bk_submitBtn').onclick = async ()=>{
+    const name = $('bk_name').value.trim();
+    const phone = $('bk_phone').value.trim();
+    const gender = $('bk_gender').value;
+    const checkin = $('bk_checkin').value;
+    const roomType = $('bk_roomtype').value;
+    const mpesaPhone = $('bk_mpesa_phone').value.trim();
+    const amount = Number($('bk_amount').value) || Number(prop.price) || 0;
+    const mpesaCode = $('bk_mpesa_code').value.trim();
+    const note = $('bk_note').value.trim();
+
+    const errDiv = $('bk_error');
+    errDiv.style.display='none'; errDiv.textContent='';
+
+    if(!name) { errDiv.textContent='Name required'; errDiv.style.display='block'; return; }
+    if(!phone) { errDiv.textContent='Phone required'; errDiv.style.display='block'; return; }
+    if(!mpesaPhone) { errDiv.textContent='M-Pesa phone required'; errDiv.style.display='block'; return; }
+    if(!mpesaCode) { errDiv.textContent='M-Pesa transaction code required'; errDiv.style.display='block'; return; }
+
+    // Build booking & payment objects
+    const bookingId = genId();
+    const paymentId = genId();
+    const bookingObj = {
+      bookingId,
+      tenantId: currentUser.uid,
       tenantName: name,
       tenantPhone: phone,
-      checkin, checkout,
-      amountDue: room.deposit || 0,
-      paid: false,
-      createdAt: Date.now()
+      propertyId: propertyId,
+      propertyTitle: prop.title||'',
+      landlordId: prop.landlordId || null,
+      amount: amount,
+      mpesaPhone: mpesaPhone,
+      mpesaCode: mpesaCode,
+      roomType: roomType,
+      checkinDate: checkin || null,
+      note: note || '',
+      dateCreated: Date.now(),
+      status: 'pending' // landlord to verify mpesa
     };
-    db.collection('bookings').doc(booking.id).set(booking).then(()=>{
-      alert('Booking created. After payment, enter MPESA ref in My Bookings to confirm.');
-      renders();
-    }).catch(e=>{ console.error(e); alert('Booking failed'); });
-  }).catch(e=>{ console.error(e); alert('Failed to read house'); });
+
+    const paymentObj = {
+      paymentId,
+      bookingId,
+      tenantId: currentUser.uid,
+      landlordId: prop.landlordId || null,
+      propertyId: propertyId,
+      amount: amount,
+      mpesaCode: mpesaCode,
+      mpesaPhone: mpesaPhone,
+      date: Date.now(),
+      status: 'awaiting-verification'
+    };
+
+    try{
+      // Save booking & payment to Firestore
+      await firestore.collection('bookings').doc(bookingId).set(bookingObj);
+      await firestore.collection('payments').doc(paymentId).set(paymentObj);
+
+      // create initial chat message in RTDB
+      const chatMsg = {
+        text: `Booking created. Tenant ${name} says: ${note || '(no message)'} — MPESA: ${mpesaCode}`,
+        senderType: 'tenant',
+        senderId: currentUser.uid,
+        senderName: name,
+        timestamp: Date.now()
+      };
+      await rdb.ref('chats/' + bookingId + '/messages').push(chatMsg);
+
+      // Also create a simple inquiry record in RTDB for compatibility (optional)
+      await rdb.ref('inquiries/' + bookingId).set({
+        id: bookingId,
+        propertyId: propertyId,
+        propertyTitle: prop.title||'',
+        landlordId: prop.landlordId || null,
+        tenantUid: currentUser.uid,
+        tenantName: name,
+        tenantPhone: phone,
+        message: note || '',
+        status: 'new',
+        createdAt: Date.now()
+      });
+
+      hideModal('bookingModal');
+      alert('Booking submitted. Payment recorded. Landlord will verify MPESA and respond via chat.');
+      openMyBookings(); // show user's bookings
+    }catch(e){
+      console.error('Booking failed', e);
+      errDiv.textContent = 'Booking failed. Try again.';
+      errDiv.style.display='block';
+    }
+  };
 }
 
 /* Modal helpers */
 function showModal(id){ $('overlay').classList.add('show'); $(id).classList.add('show'); }
 function hideModal(id){ $('overlay').classList.remove('show'); $(id).classList.remove('show'); }
 
-/* Auth UI logic: center modal and hide map while auth centered */
+/* Auth modal helpers */
 function showAuthModalCentered(){
-  // hide the map when auth is centered
   $('mapContainer').style.display = 'none';
-  $('mapPlaceholder').style.display = ''; // show placeholder while auth
+  $('mapPlaceholder').style.display = '';
   showModal('authModal');
 }
 function hideAuthAndEnsureMapHidden(){
-  // If auth modal is open, map must be hidden (per your request)
-  if($( 'authModal' ).classList.contains('show')){
+  if($('authModal').classList.contains('show')){
     $('mapContainer').style.display = 'none';
     $('mapPlaceholder').style.display = '';
   }
 }
 
-/* Wire auth UI */
+/* Wire UI */
+$('hamburger').addEventListener('click', ()=> { const sb = $('sidebar'); sb.classList.add('open'); sb.setAttribute('aria-hidden','false'); });
+document.body.addEventListener('click',(e)=>{ const sb=$('sidebar'); if(e.target.id!=='hamburger' && !sb.contains(e.target)) { sb.classList.remove('open'); sb.setAttribute('aria-hidden','true'); }});
+$('linkHome').addEventListener('click', ()=>{ $('mainSearch').value=''; $('resultsCount').textContent='—'; $('sGrid').innerHTML=`<div class="card"><p class="small">No houses — search above.</p></div>`; $('sidebar').classList.remove('open'); });
+$('links').addEventListener('click', ()=> { renders(); $('sidebar').classList.remove('open'); });
 $('loginBtn').addEventListener('click', showAuthModalCentered);
-$('closeAuth').addEventListener('click', ()=> { hideModal('authModal'); });
+$('closeAuth').addEventListener('click', ()=> hideModal('authModal'));
 $('closeDetail').addEventListener('click', ()=> hideModal('detailModal'));
+$('closeBooking').addEventListener('click', ()=> hideModal('bookingModal'));
 $('closeMyBookings').addEventListener('click', ()=> hideModal('myBookingsModal'));
 
-// Sign up / sign in
+/* Auth flow: Email/Password + Google */
 $('btnSignUp').addEventListener('click', async ()=>{
   const email = $('email').value.trim(), password = $('password').value.trim();
   if(!email||!password) return alert('Email & password required');
-  try{ await auth.createUserWithEmailAndPassword(email,password); alert('Registered.'); hideModal('authModal'); }
-  catch(e){ console.error(e); alert(e.message||'Register failed'); }
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email,password);
+    // Update displayName if email before had name? we keep simple
+    alert('Registered. You are now signed in.');
+    hideModal('authModal');
+  }catch(e){ console.error(e); alert(e.message||'Register failed'); }
 });
 $('btnSignIn').addEventListener('click', async ()=>{
   const email = $('email').value.trim(), password = $('password').value.trim();
   if(!email||!password) return alert('Email & password required');
-  try{ await auth.signInWithEmailAndPassword(email,password); alert('Signed in'); hideModal('authModal'); }
+  try{ await auth.signInWithEmailAndPassword(email,password); hideModal('authModal'); }
   catch(e){ console.error(e); alert(e.message||'Sign-in failed'); }
 });
 $('btnGoogle').addEventListener('click', async ()=>{
@@ -501,63 +659,103 @@ $('btnGoogle').addEventListener('click', async ()=>{
 $('signoutBtn').addEventListener('click', ()=> auth.signOut());
 
 /* Monitor auth state */
-auth && auth.onAuthStateChanged(user=>{
-  currentUser = user;
-  $('who').textContent = user ? (user.displayName || user.email) : 'guest';
-  // When user logs in close auth and allow map to be used
-  if(user){
-    hideModal('authModal');
-    // if there is a previous search, show map
-    if(selectedCampusPoint){
-      $('mapContainer').style.display = '';
-      $('mapPlaceholder').style.display = 'none';
-      initMapIfNeeded(selectedCampusPoint.lat, selectedCampusPoint.lng);
-      setTimeout(()=>{ try{ map.invalidateSize(); }catch(e){} }, 60);
+if(auth) {
+  auth.onAuthStateChanged(user=>{
+    currentUser = user;
+    $('who').textContent = user ? (user.displayName || user.email) : 'guest';
+    if(user){
+      hideModal('authModal');
+      if(selectedCampusPoint){
+        $('mapContainer').style.display = '';
+        $('mapPlaceholder').style.display = 'none';
+        initMapIfNeeded(selectedCampusPoint.lat, selectedCampusPoint.lng);
+        setTimeout(()=>{ try{ map.invalidateSize(); }catch(e){} }, 60);
+      }
+    } else {
+      $('mapContainer').style.display = 'none';
+      $('mapPlaceholder').style.display = '';
     }
-  } else {
-    // user signed out -> hide map (per your instruction)
-    $('mapContainer').style.display = 'none';
-    $('mapPlaceholder').style.display = '';
-  }
-});
+  });
+}
 
-/* My bookings list */
-$('linkBookings').addEventListener('click', async ()=>{
+/* My Bookings - show bookings where tenantId == currentUser.uid */
+async function openMyBookings(){
   if(!currentUser){ showAuthModalCentered(); return; }
   showModal('myBookingsModal');
   $('mb_list').innerHTML = '<div class="small">Loading...</div>';
   try{
-    const snap = await db.collection('bookings').where('tenantUid','==',currentUser.uid).orderBy('createdAt','desc').get();
-    const items = snap.docs.map(d=>d.data());
-    if(!items.length){ $('mb_list').innerHTML = '<div class="small">No bookings found</div>'; return; }
-    $('mb_list').innerHTML = items.map(b=>{
-      const status = b.paid ? '<span style="color:green">PAID</span>' : '<span style="color:orange">Pending</span>';
+    const snap = await firestore.collection('bookings').where('tenantId','==',currentUser.uid).get();
+    const items = [];
+    snap.forEach(doc=>{
+      const d = doc.data(); d.id = doc.id;
+      items.push(d);
+    });
+    if(!items.length){ $('mb_list').innerHTML = '<div class="small">No bookings yet</div>'; return; }
+    // sort desc
+    items.sort((a,b)=> (b.dateCreated||0) - (a.dateCreated||0));
+    $('mb_list').innerHTML = items.map(i=>{
+      const when = i.dateCreated ? new Date(i.dateCreated).toLocaleString() : '';
       return `<div style="padding:10px;border-radius:8px;border:1px solid #eee;background:#fff;margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between"><strong>${escapeHtml(b.houseId)}</strong><small>${new Date(b.createdAt).toLocaleString()}</small></div>
-        <div class="small">Amount: KSh ${escapeHtml(String(b.amountDue))} • ${status}</div>
+        <div style="display:flex;justify-content:space-between"><strong>${escapeHtml(i.propertyTitle||i.propertyId||'Property')}</strong><small>${escapeHtml(when)}</small></div>
+        <div class="small">Status: ${escapeHtml(i.status||'pending')} • Amount: KSh ${escapeHtml(String(i.amount||''))}</div>
         <div style="margin-top:8px;display:flex;gap:8px">
-          ${!b.paid?`<button class="btn" onclick="enterMpesa('${b.id}')">Enter MPESA ref</button>`:''}
-          <button class="btn" onclick="viewBooking('${b.id}')">View</button>
+          <button class="btn" onclick="openChatForBooking('${escapeHtml(i.bookingId||i.id)}')">Open Chat</button>
         </div>
       </div>`;
     }).join('');
-  }catch(e){ console.error(e); $('mb_list').innerHTML = '<div class="small">Failed to load bookings</div>'; }
-});
-function viewBooking(id){ alert('Open booking details — id: '+id); }
-
-/* Record MPESA ref for a booking */
-function enterMpesa(bookingId){
-  const ref = prompt('Enter MPESA transaction code (e.g. ABC123XYZ)');
-  if(!ref) return;
-  db.collection('bookings').doc(bookingId).get().then(doc=>{
-    if(!doc.exists) return alert('Booking not found');
-    const b = doc.data();
-    b.paid = true; b.mpesaRef = ref; b.paidAt = Date.now();
-    db.collection('bookings').doc(bookingId).set(b).then(()=>{ alert('Payment recorded. Booking confirmed.'); hideModal('myBookingsModal'); });
-  }).catch(e=>{ console.error(e); alert('Failed to save'); });
+  }catch(e){ console.error(e); $('mb_list').innerHTML = '<div class="small">Failed to load</div>'; }
 }
 
-/* Geocode via Nominatim and show map */
+/* Chat: open chat UI for booking id (re-uses booking modal) */
+async function openChatForBooking(bookingId){
+  if(!currentUser){ showAuthModalCentered(); return; }
+  $('bookingTitle').textContent = `Chat — Booking ${bookingId}`;
+  const chatHtml = `
+    <div class="chat-box" id="chatBoxArea">Loading messages...</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input id="chatText" class="form-row" placeholder="Type a message..." style="flex:1">
+      <button id="sendChatBtn" class="btn">Send</button>
+    </div>
+  `;
+  $('bookingBody').innerHTML = chatHtml;
+  showModal('bookingModal');
+
+  const chatRef = rdb.ref('chats/' + bookingId + '/messages').orderByChild('timestamp');
+  chatRef.on('value', snapMsgs=>{
+    const area = $('chatBoxArea');
+    area.innerHTML = '';
+    const msgs = snapMsgs.val() || {};
+    const arr = Object.keys(msgs).map(k=>msgs[k]).sort((a,b)=> (a.timestamp||0)-(b.timestamp||0));
+    arr.forEach(m=>{
+      const when = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
+      if(m.senderType === 'tenant'){
+        area.innerHTML += `<div style="margin-bottom:8px"><div class="msg-tenant">${escapeHtml(m.text)}</div><div class="small-muted">${escapeHtml(m.senderName||'You')} • ${escapeHtml(when)}</div></div>`;
+      } else {
+        area.innerHTML += `<div style="margin-bottom:8px;text-align:right"><div class="msg-landlord">${escapeHtml(m.text)}</div><div class="small-muted">${escapeHtml(when)}</div></div>`;
+      }
+    });
+    area.scrollTop = area.scrollHeight;
+  });
+
+  $('sendChatBtn').onclick = async ()=>{
+    const text = $('chatText').value.trim();
+    if(!text) return;
+    const message = {
+      text,
+      senderType: 'tenant',
+      senderId: currentUser.uid,
+      senderName: currentUser.displayName || currentUser.email || 'Tenant',
+      timestamp: Date.now()
+    };
+    await rdb.ref('chats/' + bookingId + '/messages').push(message);
+  };
+
+  // detach when closing
+  const detach = ()=> chatRef.off();
+  $('closeBooking').onclick = ()=> { detach(); hideModal('bookingModal'); };
+}
+
+/* Search / geocode */
 async function geocode(q){
   const query = q.toLowerCase().includes('kenya')? q : `${q} Kenya`;
   const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(query);
@@ -565,8 +763,6 @@ async function geocode(q){
   catch(e){ console.error(e); }
   return null;
 }
-
-/* Search UI */
 $('searchBtn').addEventListener('click', ()=> doSearch());
 $('mainSearch').addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
 async function doSearch(){
@@ -574,12 +770,10 @@ async function doSearch(){
   const found = await geocode(q); if(!found) return alert('Location not found');
   selectedCampusPoint = { lat:found.lat, lng:found.lng, display_name:found.display_name };
   $('selectedCampusLabel').textContent = found.display_name;
-  // show map (but if auth modal is open, per your request we keep it hidden while auth centered)
   if(!($('authModal').classList.contains('show'))){
     $('mapContainer').style.display = '';
     $('mapPlaceholder').style.display = 'none';
   } else {
-    // auth centered: keep placeholder visible
     $('mapContainer').style.display = 'none';
     $('mapPlaceholder').style.display = '';
   }
@@ -600,30 +794,45 @@ $('toggleTiles').addEventListener('click', ()=>{
   else { if(map.hasLayer(sat)) map.removeLayer(sat); osm.addTo(map); $('toggleTiles').textContent='Satellite'; }
 });
 
-/* Sidebar toggle & nav */
-$('hamburger').addEventListener('click', ()=> { const sb = $('sidebar'); sb.classList.add('open'); sb.setAttribute('aria-hidden','false'); });
-document.body.addEventListener('click',(e)=>{ const sb=$('sidebar'); if(e.target.id!=='hamburger' && !sb.contains(e.target)) { sb.classList.remove('open'); sb.setAttribute('aria-hidden','true'); }});
-$('linkHome').addEventListener('click', ()=>{ $('mainSearch').value=''; $('resultsCount').textContent='—'; $('sGrid').innerHTML=`<div class="card"><p class="small">No houses — search above.</p></div>`; $('sidebar').classList.remove('open'); });
-$('links').addEventListener('click', ()=> { renders(); $('sidebar').classList.remove('open'); });
+/* My bookings nav */
+$('linkBookings').addEventListener('click', openMyBookings);
 
-/* Initial render: map hidden, show demo houses list */
+/* Initial render: hide map until search and show properties from Firestore */
 $('mapContainer').style.display = 'none';
 $('mapPlaceholder').style.display = '';
 renders();
 
+/* small safety: if no rdb or auth available */
+if(!rdb) console.warn('Realtime Database not initialized. Check firebaseConfig.databaseURL.');
+if(!firestore) console.warn('Firestore not initialized. Check firebaseConfig.projectId.');
 
-document.getElementById("googleLoginBtn").addEventListener("click", async () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
+
+async function submitBooking(propertyId) {
+  if(!firebase.auth().currentUser) return alert('You must login first');
+
+  const tenant = firebase.auth().currentUser;
+  const landlordId = document.getElementById('landlordId').value; // hidden input from property card
+  const moveIn = document.getElementById('moveInDate').value;
+  const message = document.getElementById('tenantMessage').value;
+
+  if(!moveIn) return alert('Select move-in date');
+
   try {
-    await auth.signInWithPopup(provider);
-    alert("Logged in with Google!");
-    hideModal("authModal");
+    await firebase.firestore().collection('inquiries').add({
+      tenantId: tenant.uid,
+      landlordId: landlordId,
+      propertyId: propertyId,
+      moveInDate: moveIn,
+      message: message || '',
+      status: 'pending',
+      createdAt: Date.now()
+    });
+    alert('Booking submitted successfully!');
   } catch (err) {
     console.error(err);
-    alert("Google Login Failed: " + err.message);
+    alert('Booking failed, try again');
   }
-});
-
+}
 
 </script>
 </body>
